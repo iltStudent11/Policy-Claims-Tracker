@@ -4,6 +4,7 @@ import connectDb from './config/db';
 import policiesRouter from './routes/policies';
 import claimsRouter from './routes/claims';
 import dashboardRouter from './routes/dashboard';
+import errorHandler from './middleware/errorHandler';
 
 const app = express();
 const port = Number(process.env.PORT) || 5000;
@@ -23,10 +24,7 @@ app.use('/api/policies', policiesRouter);
 app.use('/api/claims', claimsRouter);
 app.use('/api/dashboard', dashboardRouter);
 
-app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-	console.error(error);
-	res.status(500).json({ message: 'Internal server error' });
-});
+app.use(errorHandler);
 
 const startServer = async () => {
 	await connectDb();
