@@ -1,7 +1,15 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import UserModel from '../models/User';
+import authMiddleware, { AuthenticatedRequest } from '../middleware/auth';
 
 const authRouter = Router();
+
+const signAuthToken = (userId: string): string => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'development-secret', {
+    expiresIn: '1d',
+  });
+};
 
 authRouter.post('/register', async (req, res, next) => {
   try {
@@ -16,6 +24,10 @@ authRouter.post('/register', async (req, res, next) => {
       return res.status(400).json({ message: 'name, email, and password are required' });
     }
 
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'password must be at least 8 characters' });
+    }
+
     const existing = await UserModel.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(409).json({ message: 'Email already in use' });
@@ -28,7 +40,9 @@ authRouter.post('/register', async (req, res, next) => {
       role,
     });
 
-    return res.status(201).json({ user: user.toJSON() });
+    const token = signAuthToken(user.id);
+
+    return res.status(201).json({ token, user: user.toJSON() });
   } catch (error) {
     return next(error);
   }
@@ -55,10 +69,16 @@ authRouter.post('/login', async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    return res.status(200).json({ user: user.toJSON() });
+    const token = signAuthToken(user.id);
+
+    return res.status(200).json({ token, user: user.toJSON() });
   } catch (error) {
     return next(error);
   }
+});
+
+authRouter.get('/me', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  return res.status(200).json({ user: req.user?.toJSON() ?? null });
 });
 
 export default authRouter;

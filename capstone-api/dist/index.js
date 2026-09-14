@@ -12,7 +12,7 @@ app.use(express_1.default.json());
 app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
 });
-app.use('/auth', auth_1.default);
+app.use('/api/auth', auth_1.default);
 app.use((error, _req, res, _next) => {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

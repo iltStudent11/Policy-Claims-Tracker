@@ -11,7 +11,7 @@ app.get('/health', (_req, res) => {
 	res.status(200).json({ status: 'ok' });
 });
 
-app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
 	console.error(error);
