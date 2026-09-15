@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
+import ClaimDetailPage from './pages/ClaimDetailPage'
+import ClaimsPage from './pages/ClaimsPage'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -17,6 +19,22 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/claims"
+          element={
+            <ProtectedRoute>
+              <ClaimsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/claims/:id"
+          element={
+            <ProtectedRoute>
+              <ClaimDetailPage />
             </ProtectedRoute>
           }
         />

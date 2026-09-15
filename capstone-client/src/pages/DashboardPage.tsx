@@ -74,7 +74,12 @@ const DashboardPage = () => {
 
   return (
     <main className="dashboard-page">
-      <h1>Dashboard</h1>
+      <header className="dashboard-header">
+        <h1>Dashboard</h1>
+        <Link to="/claims" className="dashboard-link-button">
+          Claims
+        </Link>
+      </header>
 
       <section className="summary-grid" aria-label="Summary stats">
         <article className="stat-card">
