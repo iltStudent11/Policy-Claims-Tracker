@@ -8,6 +8,19 @@ import UserModel from './models/User';
 
 dotenv.config();
 
+const nodeEnv = (process.env.NODE_ENV || '').toLowerCase();
+const seedConfirm = (process.env.SEED_CONFIRM || '').toLowerCase();
+
+if (nodeEnv === 'production') {
+  console.error('Seeding is blocked when NODE_ENV=production');
+  process.exit(1);
+}
+
+if (seedConfirm !== 'true') {
+  console.error('Seeding requires SEED_CONFIRM=true');
+  process.exit(1);
+}
+
 const seedDatabase = async () => {
   await connectDb();
 

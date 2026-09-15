@@ -1,93 +1,36 @@
-# Policy Claims Tracker API
+# Policy Claims Tracker
 
-Backend API for managing insurance users, policies, and claims.
+Monorepo for the Policy Claims Tracker frontend and backend.
 
-## Tech Stack
+## Project Docs
 
-- Node.js + Express
-- MongoDB + Mongoose
-- JWT authentication
-- Role-based authorization (`admin`, `adjuster`)
+- Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
+- High-level architecture diagram: [ARCHITECTURE.md#architecture-diagram](ARCHITECTURE.md#architecture-diagram)
+- Auth request sequence: [ARCHITECTURE.md#auth-request-sequence](ARCHITECTURE.md#auth-request-sequence)
+- Backend (TypeScript API): [capstone-api/README.md](capstone-api/README.md)
+- Frontend (React + Vite): [capstone-client/README.md](capstone-client/README.md)
 
-## Data Models
+## Quick Start
 
-### User
-- `name`
-- `email` (unique)
-- `password` (hashed)
-- `role` (`adjuster` or `admin`)
-
-### Policy
-- `policyNumber` (unique)
-- `holderName`
-- `type` (`auto`, `home`, `life`)
-- `premiumAmount`
-- `status` (`active`, `expired`, `cancelled`)
-- `effectiveDate`
-- `expirationDate`
-- `owner` (ref to `User`)
-
-### Claim
-- `claimNumber` (auto-generated like `CLM-1001`)
-- `policy` (ref to `Policy`)
-- `description`
-- `incidentDate`
-- `claimedAmount`
-- `status` (`submitted`, `under-review`, `approved`, `denied`, `closed`)
-- `assignedAdjuster` (ref to `User`)
-- `notes[]` with:
-  - `author` (ref to `User`)
-  - `text`
-  - `timestamp`
-
-## Setup
-
-1. Install dependencies:
+1. Start backend:
    ```bash
+   cd capstone-api
    npm install
+   npm run dev
    ```
-2. Copy env template:
+2. Start frontend (new terminal):
    ```bash
-   cp .env.example .env
-   ```
-3. Ensure MongoDB is running and set `MONGODB_URI`.
-4. Start in development mode:
-   ```bash
+   cd capstone-client
+   npm install
    npm run dev
    ```
 
-API base URL: `http://localhost:4000`
+Default local URLs:
 
-## Authentication
+- API: `http://localhost:5000`
+- Client: `http://localhost:5173`
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me` (Bearer token required)
+## Notes
 
-> First admin can be created via register by sending `role: "admin"` when no admin exists yet.
-
-## Users
-
-- `GET /api/users` (admin only)
-- `GET /api/users/adjusters` (authenticated users)
-
-## Policies
-
-- `POST /api/policies` (admin only)
-- `GET /api/policies`
-- `GET /api/policies/:id`
-- `PUT /api/policies/:id` (admin only)
-- `DELETE /api/policies/:id` (admin only)
-
-## Claims
-
-- `POST /api/claims`
-- `GET /api/claims`
-- `GET /api/claims/:id`
-- `PUT /api/claims/:id` (admin or assigned adjuster)
-- `POST /api/claims/:id/notes`
-- `DELETE /api/claims/:id` (admin only)
-
-## Health Check
-
-- `GET /health`
+- Seed instructions and safeguards are documented in [capstone-api/README.md](capstone-api/README.md).
+- The frontend proxies `/api` requests to the backend in development.
