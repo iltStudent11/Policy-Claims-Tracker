@@ -180,8 +180,8 @@ const ClaimDetailPage = () => {
         <p className="claims-error">{error}</p>
         <PageLinks
           links={[
-            { to: '/claims', label: 'Back to claims' },
-            { to: '/policies', label: 'Go to policies' },
+            { to: '/claims', label: 'Claims' },
+            { to: '/policies', label: 'Policies' },
           ]}
         />
       </main>
@@ -194,8 +194,8 @@ const ClaimDetailPage = () => {
         <p className="claims-error">Claim not found.</p>
         <PageLinks
           links={[
-            { to: '/claims', label: 'Back to claims' },
-            { to: '/policies', label: 'Go to policies' },
+            { to: '/claims', label: 'Claims' },
+            { to: '/policies', label: 'Policies' },
           ]}
         />
       </main>
@@ -211,8 +211,8 @@ const ClaimDetailPage = () => {
         </div>
         <PageLinks
           links={[
-            { to: '/claims', label: 'Back to claims' },
-            { to: '/policies', label: 'Go to policies' },
+            { to: '/claims', label: 'Claims' },
+            { to: '/policies', label: 'Policies' },
           ]}
         />
       </header>

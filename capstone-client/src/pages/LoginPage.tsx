@@ -20,7 +20,7 @@ const LoginPage = () => {
 
     try {
       await login(email, password)
-      navigate('/dashboard')
+      navigate('/')
     } catch (caughtError) {
       const requestError = caughtError as AxiosError<ApiErrorResponse>
       const message = requestError.response?.data?.message ?? 'Login failed. Please try again.'

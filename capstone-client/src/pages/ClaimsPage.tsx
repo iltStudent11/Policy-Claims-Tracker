@@ -366,8 +366,8 @@ const ClaimsPage = () => {
 
       <PageLinks
         links={[
-          { to: '/dashboard', label: 'Back to dashboard' },
-          { to: '/policies', label: 'Go to policies' },
+          { to: '/', label: 'Dashboard' },
+          { to: '/policies', label: 'Policies' },
         ]}
       />
     </main>

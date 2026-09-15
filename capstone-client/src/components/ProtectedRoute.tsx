@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Navbar from './Navbar'
 
 const ProtectedRoute = ({ children }: PropsWithChildren) => {
   const { token, loading } = useAuth()
@@ -14,7 +15,12 @@ const ProtectedRoute = ({ children }: PropsWithChildren) => {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
-  return children ?? <Outlet />
+  return (
+    <div className="protected-layout">
+      <Navbar />
+      <div className="protected-content">{children ?? <Outlet />}</div>
+    </div>
+  )
 }
 
 export default ProtectedRoute

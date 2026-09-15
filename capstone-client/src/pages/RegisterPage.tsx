@@ -23,7 +23,7 @@ const RegisterPage = () => {
 
     try {
       await register(name, email, password, role)
-      navigate('/dashboard')
+      navigate('/')
     } catch (caughtError) {
       const requestError = caughtError as AxiosError<ApiErrorResponse>
       const message = requestError.response?.data?.message ?? 'Registration failed. Please try again.'

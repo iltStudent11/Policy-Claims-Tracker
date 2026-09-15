@@ -1,8 +1,6 @@
 import { AxiosError } from 'axios'
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
 import api from '../api'
-import PageHeaderActions from '../components/PageHeaderActions'
 import PageLinks from '../components/PageLinks'
 import type { PaginatedResponse, Policy, PolicyStatus, PolicyType } from '../types'
 
@@ -192,14 +190,9 @@ const PoliciesPage = () => {
           <h1>Policies</h1>
           <p className="claims-subtitle">View and manage all policies.</p>
         </div>
-        <PageHeaderActions>
-          <button type="button" className="claims-new-button" onClick={() => setShowForm((current) => !current)}>
-            {showForm ? 'Cancel' : 'New Policy'}
-          </button>
-          <Link to="/claims" className="dashboard-link-button">
-            Go to claims
-          </Link>
-        </PageHeaderActions>
+        <button type="button" className="claims-new-button" onClick={() => setShowForm((current) => !current)}>
+          {showForm ? 'Cancel' : 'New Policy'}
+        </button>
       </header>
 
       {showForm ? (
@@ -407,8 +400,8 @@ const PoliciesPage = () => {
 
       <PageLinks
         links={[
-          { to: '/dashboard', label: 'Back to dashboard' },
-          { to: '/claims', label: 'Go to claims' },
+          { to: '/', label: 'Dashboard' },
+          { to: '/claims', label: 'Claims' },
         ]}
       />
     </main>
