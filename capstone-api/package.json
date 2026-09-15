@@ -7,7 +7,9 @@
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "start": "node dist/server.js",
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "postman:test": "newman run postman/Policy-Claims-Tracker.postman_collection.json -e postman/Policy-Claims-Tracker.local.postman_environment.json",
+    "postman:test:bail": "npm run postman:test -- --bail"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -15,6 +17,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.5.1",
+    "newman": "^6.2.1",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.23.13",
     "typescript": "^5.6.3"
