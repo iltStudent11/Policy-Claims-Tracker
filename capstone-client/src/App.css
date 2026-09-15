@@ -112,6 +112,11 @@
   text-decoration: none;
 }
 
+.page-header-actions {
+  display: inline-flex;
+  gap: 10px;
+}
+
 .dashboard-error {
   color: #d23f3f;
 }
@@ -387,6 +392,80 @@
   color: var(--accent);
 }
 
+.policies-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.policies-page h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.policies-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.policies-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.policies-form label,
+.policies-filters label {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  color: var(--text-h);
+}
+
+.policies-form input,
+.policies-form select,
+.policies-filters input,
+.policies-filters select {
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 10px;
+  font: inherit;
+  color: var(--text-h);
+  background: var(--bg);
+  box-sizing: border-box;
+}
+
+.policies-form button {
+  grid-column: 1 / -1;
+}
+
+.policies-filters {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+}
+
+.policy-delete-button {
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  padding: 0 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.policy-delete-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .claim-detail-page {
   max-width: 900px;
   margin: 0 auto;
@@ -554,8 +633,20 @@
     align-items: stretch;
   }
 
+  .policies-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header-actions {
+    display: grid;
+    gap: 10px;
+  }
+
   .claims-filters,
-  .claims-form {
+  .claims-form,
+  .policies-filters,
+  .policies-form {
     grid-template-columns: 1fr;
   }
 

@@ -2,6 +2,7 @@ import { AxiosError } from 'axios'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import api from '../api'
+import PageLinks from '../components/PageLinks'
 import type { Claim, ClaimStatus, PaginatedResponse, Policy } from '../types'
 
 interface ApiErrorResponse {
@@ -363,9 +364,12 @@ const ClaimsPage = () => {
         </button>
       </nav>
 
-      <p className="claims-back-link">
-        <Link to="/dashboard">Back to dashboard</Link>
-      </p>
+      <PageLinks
+        links={[
+          { to: '/dashboard', label: 'Back to dashboard' },
+          { to: '/policies', label: 'Go to policies' },
+        ]}
+      />
     </main>
   )
 }

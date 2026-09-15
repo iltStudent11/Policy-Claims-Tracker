@@ -2,6 +2,7 @@ import { AxiosError } from 'axios'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api'
+import PageHeaderActions from '../components/PageHeaderActions'
 import type { ClaimStatus, DashboardResponse, DashboardStats } from '../types'
 
 interface ApiErrorResponse {
@@ -76,9 +77,14 @@ const DashboardPage = () => {
     <main className="dashboard-page">
       <header className="dashboard-header">
         <h1>Dashboard</h1>
-        <Link to="/claims" className="dashboard-link-button">
-          Claims
-        </Link>
+        <PageHeaderActions>
+          <Link to="/claims" className="dashboard-link-button">
+            Claims
+          </Link>
+          <Link to="/policies" className="dashboard-link-button">
+            Policies
+          </Link>
+        </PageHeaderActions>
       </header>
 
       <section className="summary-grid" aria-label="Summary stats">

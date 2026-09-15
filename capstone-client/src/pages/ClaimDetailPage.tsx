@@ -1,7 +1,8 @@
 import { AxiosError } from 'axios'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api'
+import PageLinks from '../components/PageLinks'
 import type { Claim, ClaimStatus } from '../types'
 
 interface ApiErrorResponse {
@@ -177,9 +178,12 @@ const ClaimDetailPage = () => {
     return (
       <main className="claim-detail-page">
         <p className="claims-error">{error}</p>
-        <p className="claims-back-link">
-          <Link to="/claims">Back to claims</Link>
-        </p>
+        <PageLinks
+          links={[
+            { to: '/claims', label: 'Back to claims' },
+            { to: '/policies', label: 'Go to policies' },
+          ]}
+        />
       </main>
     )
   }
@@ -188,9 +192,12 @@ const ClaimDetailPage = () => {
     return (
       <main className="claim-detail-page">
         <p className="claims-error">Claim not found.</p>
-        <p className="claims-back-link">
-          <Link to="/claims">Back to claims</Link>
-        </p>
+        <PageLinks
+          links={[
+            { to: '/claims', label: 'Back to claims' },
+            { to: '/policies', label: 'Go to policies' },
+          ]}
+        />
       </main>
     )
   }
@@ -202,9 +209,12 @@ const ClaimDetailPage = () => {
           <h1>{claim.claimNumber}</h1>
           <p className="claims-subtitle">Claim detail</p>
         </div>
-        <p className="claims-back-link">
-          <Link to="/claims">Back to claims</Link>
-        </p>
+        <PageLinks
+          links={[
+            { to: '/claims', label: 'Back to claims' },
+            { to: '/policies', label: 'Go to policies' },
+          ]}
+        />
       </header>
 
       {error ? <p className="claims-error">{error}</p> : null}
