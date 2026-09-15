@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios'
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import type { UserRole } from '../types'
 
@@ -10,6 +10,7 @@ interface ApiErrorResponse {
 
 const RegisterPage = () => {
   const { register, loading } = useAuth()
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,6 +23,7 @@ const RegisterPage = () => {
 
     try {
       await register(name, email, password, role)
+      navigate('/dashboard')
     } catch (caughtError) {
       const requestError = caughtError as AxiosError<ApiErrorResponse>
       const message = requestError.response?.data?.message ?? 'Registration failed. Please try again.'

@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios'
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 interface ApiErrorResponse {
@@ -9,6 +9,7 @@ interface ApiErrorResponse {
 
 const LoginPage = () => {
   const { login, loading } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +20,7 @@ const LoginPage = () => {
 
     try {
       await login(email, password)
+      navigate('/dashboard')
     } catch (caughtError) {
       const requestError = caughtError as AxiosError<ApiErrorResponse>
       const message = requestError.response?.data?.message ?? 'Login failed. Please try again.'
