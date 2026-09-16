@@ -8,6 +8,12 @@ Policy Claims Tracker is a two-application monorepo:
 - `capstone-api`: Node.js + Express + TypeScript backend
 - MongoDB: persistent data store accessed by the API through Mongoose
 
+Supported runtime modes:
+
+- Local dev: Vite (`5173`) + API (`5000`) + Mongo (`27017`)
+- Docker Compose: Client (`3000`) + API (`5000`) + Mongo (`27017`)
+- Kubernetes (kind): ClusterIP services for `client` (`80`), `api` (`5000`), and `mongo` (`27017`)
+
 In development, the frontend serves on `http://localhost:5173` and proxies `/api` calls to the backend at `http://localhost:5000`.
 
 ## High-Level Component Model
@@ -18,6 +24,8 @@ In development, the frontend serves on `http://localhost:5173` and proxies `/api
 4. Mongoose models read/write MongoDB collections.
 5. API returns JSON responses to the client.
 
+In containerized runtime, browser traffic hits Nginx in the client container, and Nginx forwards `/api` to the API container/service.
+
 ## Architecture Diagram
 
 ```mermaid
@@ -25,6 +33,7 @@ flowchart LR
   User[User Browser]
   Client[capstone-client\nReact + Vite]
   Proxy[Vite Dev Proxy\n/api]
+  Nginx[Client Nginx\n/api reverse proxy]
   API[capstone-api\nExpress + TypeScript]
   Auth[Auth Middleware\nJWT Validation]
   Routes[Route Modules\nauth/policies/claims/dashboard]
@@ -34,6 +43,8 @@ flowchart LR
   User --> Client
   Client -->|HTTP /api| Proxy
   Proxy --> API
+  User -->|Docker/K8s HTTP| Nginx
+  Nginx -->|/api| API
   API --> Auth
   Auth --> Routes
   Routes --> Models
@@ -82,6 +93,12 @@ sequenceDiagram
   4. Connect to MongoDB.
   5. Start HTTP server.
 
+Key runtime defaults:
+
+- `PORT` defaults to `5000` when unset.
+- `MONGODB_URI` fallback points to `mongodb://127.0.0.1:27017/policy-claims`.
+- Health endpoint is exposed at `/api/health`.
+
 ### Route modules
 
 - `routes/auth.ts`: authentication endpoints (register/login/me)
@@ -112,6 +129,11 @@ Mongoose models define persistence schemas and relationships:
 - Root app: `src/App.tsx`
 - HTTP client: `src/api.ts` (Axios instance targeting `/api`)
 
+Proxy behavior:
+
+- Local dev: Vite proxies `/api` to `http://localhost:5000`.
+- Docker/Kubernetes runtime: Nginx proxies `/api` to `api:5000`.
+
 ### UI composition
 
 - `pages/`: route-level screens (login/register/dashboard)
@@ -140,13 +162,38 @@ Mongoose models define persistence schemas and relationships:
   - blocked when `NODE_ENV=production`
   - blocked unless `SEED_CONFIRM=true`
 
+Database naming:
+
+- The stack is standardized on the `policy-claims` database name.
+
 ## Operational Notes
 
 - Backend health endpoint: `/api/health`
 - Frontend relies on Vite proxy for local development API calls.
+- Containerized frontend uses Nginx reverse proxy for `/api`.
 - Build outputs:
   - API: TypeScript compile output in `capstone-api/dist`
   - Client: Vite build output in `capstone-client/dist`
+
+## Kubernetes Deployment Model
+
+Kubernetes resources are defined in `k8s/manifests.yaml`:
+
+- Namespace: `policy-claims`
+- Deployments: `mongo`, `api`, `client` (each with one replica)
+- Services (ClusterIP): `mongo:27017`, `api:5000`, `client:80`
+
+Object relationship:
+
+1. Deployment declares desired pod template and replica count.
+2. Kubernetes creates Pods from each Deployment.
+3. Service selects Pods by label and provides stable networking.
+
+Typical verification commands:
+
+- `kubectl -n policy-claims get pods`
+- `kubectl -n policy-claims get deployments`
+- `kubectl -n policy-claims get services`
 
 ## Repository Layout (Key Paths)
 

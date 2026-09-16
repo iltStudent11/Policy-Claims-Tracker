@@ -19,6 +19,12 @@ TypeScript backend for the Policy Claims Tracker.
    npm run dev
    ```
 
+Default local runtime:
+
+- API base: `http://localhost:5000`
+- Health check: `http://localhost:5000/api/health`
+- Default DB fallback when `MONGODB_URI` is unset: `mongodb://127.0.0.1:27017/policy-claims`
+
 ## Scripts
 
 - `npm run dev` - Run API with ts-node-dev
@@ -35,16 +41,17 @@ Build image from project root:
 docker build -f capstone-api/Dockerfile -t capstone-api:local capstone-api
 ```
 
-Run container (maps host port `4000` to container port `4000`):
+Run container (maps host port `5000` to container port `5000`):
 
 ```bash
-docker run --rm --name capstone-api -p 4000:4000 --env-file capstone-api/.env capstone-api:local
+docker run --rm --name capstone-api -p 5000:5000 --env-file capstone-api/.env capstone-api:local
 ```
 
 Compose notes:
 
 - The `api` service depends on an internal `mongo` service.
-- By default, `MONGODB_URI` is set to `mongodb://mongo:27017/capstone-api` inside Compose.
+- `MONGODB_URI` is set to `mongodb://mongo:27017/policy-claims`.
+- API listens on port `5000` in Compose.
 
 ## Seeding Data
 
