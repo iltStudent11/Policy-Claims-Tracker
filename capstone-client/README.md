@@ -7,7 +7,7 @@ For backend setup and seeding safeguards, see [../capstone-api/README.md](../cap
 ## Prerequisites
 
 - Node.js 18+
-- API running locally (default: `http://localhost:5000`)
+- API running locally (default: `http://localhost:4000`)
 
 ## Setup
 
@@ -15,11 +15,14 @@ For backend setup and seeding safeguards, see [../capstone-api/README.md](../cap
    ```bash
    npm install
    ```
-2. Ensure backend API is running on `http://localhost:5000` (or update the `/api` proxy target in `vite.config.ts`).
+2. Ensure backend API is running on `http://localhost:4000` (or update the `/api` proxy target in `vite.config.ts`).
 3. Start development server:
    ```bash
    npm run dev
    ```
+
+Dev proxy note: `vite.config.ts` currently proxies `/api` to `http://localhost:4000`.
+When using Docker Compose in this repo, keep that target at `4000`.
 
 ## Scripts
 
