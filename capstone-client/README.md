@@ -27,3 +27,19 @@ For backend setup and seeding safeguards, see [../capstone-api/README.md](../cap
 - `npm run build` - Type-check and build production assets
 - `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint
+
+## Docker
+
+Build image from project root:
+
+```bash
+docker build -f capstone-client/Dockerfile -t capstone-client:local capstone-client
+```
+
+Run container (maps host port `8080` to container port `80`):
+
+```bash
+docker run --rm -p 8080:80 capstone-client:local
+```
+
+Open `http://localhost:8080` in your browser.
