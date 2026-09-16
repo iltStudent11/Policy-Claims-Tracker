@@ -59,7 +59,7 @@ authRouter.post('/login', async (req, res, next) => {
       return res.status(400).json({ message: 'email and password are required' });
     }
 
-    const user = await UserModel.findOne({ email: email.toLowerCase() });
+    const user = await UserModel.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }

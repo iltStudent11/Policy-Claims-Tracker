@@ -1,13 +1,9 @@
-import { AxiosError } from 'axios'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api'
 import PageLinks from '../components/PageLinks'
 import type { Claim, ClaimStatus } from '../types'
-
-interface ApiErrorResponse {
-  message?: string
-}
+import { getApiErrorMessage } from '../utils/apiError'
 
 interface ClaimResponse {
   data: Claim
@@ -71,8 +67,7 @@ const ClaimDetailPage = () => {
       setClaim(response.data.data)
       setStatusValue(response.data.data.status)
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setError(requestError.response?.data?.message ?? 'Failed to load claim details.')
+      setError(getApiErrorMessage(caughtError, 'Unable to load claim details. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -113,8 +108,7 @@ const ClaimDetailPage = () => {
       setStatusValue(response.data.data.status)
       setSuccess('Claim status updated.')
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setError(requestError.response?.data?.message ?? 'Failed to update status.')
+      setError(getApiErrorMessage(caughtError, 'Unable to update status. Please try again.'))
     } finally {
       setStatusLoading(false)
     }
@@ -139,8 +133,7 @@ const ClaimDetailPage = () => {
       setNoteText('')
       setSuccess('Note added.')
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setError(requestError.response?.data?.message ?? 'Failed to add note.')
+      setError(getApiErrorMessage(caughtError, 'Unable to add note. Please try again.'))
     } finally {
       setNoteLoading(false)
     }
@@ -164,8 +157,7 @@ const ClaimDetailPage = () => {
       await api.delete(`/claims/${claim._id}`)
       navigate('/claims', { state: { successMessage: 'Claim deleted successfully.' } })
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setError(requestError.response?.data?.message ?? 'Failed to delete claim.')
+      setError(getApiErrorMessage(caughtError, 'Unable to delete claim. Please try again.'))
       setDeleteLoading(false)
     }
   }

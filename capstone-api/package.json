@@ -8,6 +8,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "start": "node dist/server.js",
     "seed": "tsx src/seed.ts",
+    "verify:auth-password": "tsx src/verifyAuthPasswordExposure.ts",
     "postman:test": "newman run postman/Policy-Claims-Tracker.postman_collection.json -e postman/Policy-Claims-Tracker.local.postman_environment.json",
     "postman:test:bail": "npm run postman:test -- --bail"
   },

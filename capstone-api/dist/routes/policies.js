@@ -9,6 +9,11 @@ const auth_1 = __importDefault(require("../middleware/auth"));
 const validate_1 = __importDefault(require("../middleware/validate"));
 const Policy_1 = __importDefault(require("../models/Policy"));
 const policiesRouter = (0, express_1.Router)();
+const normalizePolicyNumber = (value) => {
+    const normalizedValue = value.trim().toUpperCase();
+    return normalizedValue.startsWith('POL-') ? normalizedValue : `POL-${normalizedValue}`;
+};
+const holderNamePattern = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
 policiesRouter.use(auth_1.default);
 policiesRouter.get('/', (0, validate_1.default)([
     (0, express_validator_1.query)('page').optional().isInt({ min: 1 }).withMessage('page must be an integer greater than 0'),
@@ -73,19 +78,49 @@ policiesRouter.get('/:id', (0, validate_1.default)([(0, express_validator_1.para
     }
 });
 policiesRouter.post('/', (0, validate_1.default)([
-    (0, express_validator_1.body)('policyNumber').notEmpty().withMessage('policyNumber is required'),
-    (0, express_validator_1.body)('holderName').notEmpty().withMessage('holderName is required'),
+    (0, express_validator_1.body)('policyNumber')
+        .trim()
+        .notEmpty()
+        .withMessage('policyNumber is required')
+        .isLength({ min: 3, max: 30 })
+        .withMessage('policyNumber must be between 3 and 30 characters')
+        .matches(/^[A-Za-z0-9-]+$/)
+        .withMessage('policyNumber can only contain letters, numbers, and hyphens')
+        .toUpperCase(),
+    (0, express_validator_1.body)('holderName')
+        .trim()
+        .notEmpty()
+        .withMessage('holderName is required')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('holderName must be between 2 and 100 characters')
+        .matches(holderNamePattern)
+        .withMessage("holderName may only contain letters, spaces, hyphens, and apostrophes"),
     (0, express_validator_1.body)('type').isIn(['auto', 'home', 'life']).withMessage('type must be one of auto, home, life'),
     (0, express_validator_1.body)('premium').isFloat({ min: 0 }).withMessage('premium must be a number greater than or equal to 0'),
     (0, express_validator_1.body)('status')
         .isIn(['active', 'expired', 'cancelled'])
         .withMessage('status must be one of active, expired, cancelled'),
     (0, express_validator_1.body)('effectiveDate').isISO8601().withMessage('effectiveDate must be a valid date'),
-    (0, express_validator_1.body)('expirationDate').isISO8601().withMessage('expirationDate must be a valid date'),
+    (0, express_validator_1.body)('expirationDate')
+        .isISO8601()
+        .withMessage('expirationDate must be a valid date')
+        .custom((expirationDate, { req }) => {
+        const effectiveDate = req.body.effectiveDate;
+        if (!effectiveDate) {
+            return true;
+        }
+        const effective = new Date(effectiveDate);
+        const expiration = new Date(expirationDate);
+        if (expiration <= effective) {
+            throw new Error('expirationDate must be after effectiveDate');
+        }
+        return true;
+    }),
 ]), async (req, res, next) => {
     try {
         const policy = await Policy_1.default.create({
             ...req.body,
+            policyNumber: normalizePolicyNumber(String(req.body.policyNumber || '')),
             owner: req.user?._id,
         });
         const populatedPolicy = await policy.populate('owner', 'name email role');
@@ -97,8 +132,25 @@ policiesRouter.post('/', (0, validate_1.default)([
 });
 policiesRouter.put('/:id', (0, validate_1.default)([
     (0, express_validator_1.param)('id').isMongoId().withMessage('Invalid policy id'),
-    (0, express_validator_1.body)('policyNumber').optional().notEmpty().withMessage('policyNumber cannot be empty'),
-    (0, express_validator_1.body)('holderName').optional().notEmpty().withMessage('holderName cannot be empty'),
+    (0, express_validator_1.body)('policyNumber')
+        .optional()
+        .trim()
+        .notEmpty()
+        .withMessage('policyNumber cannot be empty')
+        .isLength({ min: 3, max: 30 })
+        .withMessage('policyNumber must be between 3 and 30 characters')
+        .matches(/^[A-Za-z0-9-]+$/)
+        .withMessage('policyNumber can only contain letters, numbers, and hyphens')
+        .toUpperCase(),
+    (0, express_validator_1.body)('holderName')
+        .optional()
+        .trim()
+        .notEmpty()
+        .withMessage('holderName cannot be empty')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('holderName must be between 2 and 100 characters')
+        .matches(holderNamePattern)
+        .withMessage("holderName may only contain letters, spaces, hyphens, and apostrophes"),
     (0, express_validator_1.body)('type').optional().isIn(['auto', 'home', 'life']).withMessage('type must be one of auto, home, life'),
     (0, express_validator_1.body)('premium')
         .optional()
@@ -110,10 +162,25 @@ policiesRouter.put('/:id', (0, validate_1.default)([
         .withMessage('status must be one of active, expired, cancelled'),
     (0, express_validator_1.body)('effectiveDate').optional().isISO8601().withMessage('effectiveDate must be a valid date'),
     (0, express_validator_1.body)('expirationDate').optional().isISO8601().withMessage('expirationDate must be a valid date'),
+    (0, express_validator_1.body)().custom((_, { req }) => {
+        const { effectiveDate, expirationDate } = req.body;
+        if (!effectiveDate || !expirationDate) {
+            return true;
+        }
+        const effective = new Date(effectiveDate);
+        const expiration = new Date(expirationDate);
+        if (expiration <= effective) {
+            throw new Error('expirationDate must be after effectiveDate');
+        }
+        return true;
+    }),
 ]), async (req, res, next) => {
     try {
         const updates = { ...req.body };
         delete updates.owner;
+        if (typeof updates.policyNumber === 'string') {
+            updates.policyNumber = normalizePolicyNumber(updates.policyNumber);
+        }
         const policy = await Policy_1.default.findByIdAndUpdate(req.params.id, updates, {
             new: true,
             runValidators: true,

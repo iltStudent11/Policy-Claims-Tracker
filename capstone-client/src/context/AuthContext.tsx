@@ -9,6 +9,7 @@ import {
 } from 'react'
 import api from '../api'
 import type { AuthResponse, User, UserRole } from '../types'
+import { getApiErrorMessage } from '../utils/apiError'
 
 interface AuthContextValue {
   user: User | null
@@ -61,6 +62,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       try {
         const response = await api.post<AuthResponse>('/auth/login', { email, password })
         persistAuth(response.data)
+      } catch (error) {
+        throw new Error(getApiErrorMessage(error, 'Unable to log in. Please try again.'))
       } finally {
         setLoading(false)
       }
@@ -79,6 +82,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           role,
         })
         persistAuth(response.data)
+      } catch (error) {
+        throw new Error(getApiErrorMessage(error, 'Unable to register. Please try again.'))
       } finally {
         setLoading(false)
       }

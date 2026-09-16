@@ -45,7 +45,7 @@ authRouter.post('/login', async (req, res, next) => {
         if (!email || !password) {
             return res.status(400).json({ message: 'email and password are required' });
         }
-        const user = await User_1.default.findOne({ email: email.toLowerCase() });
+        const user = await User_1.default.findOne({ email: email.toLowerCase() }).select('+password');
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }

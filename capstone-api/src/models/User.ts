@@ -36,6 +36,7 @@ const userSchema = new Schema<User, UserModel, UserMethods>(
       type: String,
       required: true,
       minlength: 8,
+      select: false,
     },
     role: {
       type: String,

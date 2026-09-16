@@ -1,12 +1,8 @@
-import { AxiosError } from 'axios'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api'
 import type { ClaimStatus, DashboardResponse, DashboardStats } from '../types'
-
-interface ApiErrorResponse {
-  message?: string
-}
+import { getApiErrorMessage } from '../utils/apiError'
 
 const STATUS_ORDER: ClaimStatus[] = ['submitted', 'under-review', 'approved', 'denied', 'closed']
 
@@ -39,8 +35,7 @@ const DashboardPage = () => {
         const response = await api.get<DashboardResponse>('/dashboard')
         setDashboard(response.data.data)
       } catch (caughtError) {
-        const requestError = caughtError as AxiosError<ApiErrorResponse>
-        const message = requestError.response?.data?.message ?? 'Failed to load dashboard data.'
+        const message = getApiErrorMessage(caughtError, 'Unable to load dashboard data. Please try again.')
         setError(message)
       } finally {
         setLoading(false)

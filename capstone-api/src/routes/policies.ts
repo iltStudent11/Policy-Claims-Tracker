@@ -7,6 +7,13 @@ import PolicyModel from '../models/Policy';
 
 const policiesRouter = Router();
 
+const normalizePolicyNumber = (value: string): string => {
+  const normalizedValue = value.trim().toUpperCase();
+  return normalizedValue.startsWith('POL-') ? normalizedValue : `POL-${normalizedValue}`;
+};
+
+const holderNamePattern = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
+
 policiesRouter.use(authMiddleware);
 
 policiesRouter.get(
@@ -90,20 +97,54 @@ policiesRouter.get(
 policiesRouter.post(
   '/',
   validate([
-    body('policyNumber').notEmpty().withMessage('policyNumber is required'),
-    body('holderName').notEmpty().withMessage('holderName is required'),
+    body('policyNumber')
+      .trim()
+      .notEmpty()
+      .withMessage('policyNumber is required')
+      .isLength({ min: 3, max: 30 })
+      .withMessage('policyNumber must be between 3 and 30 characters')
+      .matches(/^[A-Za-z0-9-]+$/)
+      .withMessage('policyNumber can only contain letters, numbers, and hyphens')
+      .toUpperCase(),
+    body('holderName')
+      .trim()
+      .notEmpty()
+      .withMessage('holderName is required')
+      .isLength({ min: 2, max: 100 })
+      .withMessage('holderName must be between 2 and 100 characters')
+      .matches(holderNamePattern)
+      .withMessage("holderName may only contain letters, spaces, hyphens, and apostrophes"),
     body('type').isIn(['auto', 'home', 'life']).withMessage('type must be one of auto, home, life'),
     body('premium').isFloat({ min: 0 }).withMessage('premium must be a number greater than or equal to 0'),
     body('status')
       .isIn(['active', 'expired', 'cancelled'])
       .withMessage('status must be one of active, expired, cancelled'),
     body('effectiveDate').isISO8601().withMessage('effectiveDate must be a valid date'),
-    body('expirationDate').isISO8601().withMessage('expirationDate must be a valid date'),
+    body('expirationDate')
+      .isISO8601()
+      .withMessage('expirationDate must be a valid date')
+      .custom((expirationDate, { req }) => {
+        const effectiveDate = req.body.effectiveDate;
+
+        if (!effectiveDate) {
+          return true;
+        }
+
+        const effective = new Date(effectiveDate);
+        const expiration = new Date(expirationDate);
+
+        if (expiration <= effective) {
+          throw new Error('expirationDate must be after effectiveDate');
+        }
+
+        return true;
+      }),
   ]),
   async (req: AuthenticatedRequest, res, next) => {
     try {
       const policy = await PolicyModel.create({
         ...req.body,
+        policyNumber: normalizePolicyNumber(String(req.body.policyNumber || '')),
         owner: req.user?._id,
       });
 
@@ -120,8 +161,25 @@ policiesRouter.put(
   '/:id',
   validate([
     param('id').isMongoId().withMessage('Invalid policy id'),
-    body('policyNumber').optional().notEmpty().withMessage('policyNumber cannot be empty'),
-    body('holderName').optional().notEmpty().withMessage('holderName cannot be empty'),
+    body('policyNumber')
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage('policyNumber cannot be empty')
+      .isLength({ min: 3, max: 30 })
+      .withMessage('policyNumber must be between 3 and 30 characters')
+      .matches(/^[A-Za-z0-9-]+$/)
+      .withMessage('policyNumber can only contain letters, numbers, and hyphens')
+      .toUpperCase(),
+    body('holderName')
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage('holderName cannot be empty')
+      .isLength({ min: 2, max: 100 })
+      .withMessage('holderName must be between 2 and 100 characters')
+      .matches(holderNamePattern)
+      .withMessage("holderName may only contain letters, spaces, hyphens, and apostrophes"),
     body('type').optional().isIn(['auto', 'home', 'life']).withMessage('type must be one of auto, home, life'),
     body('premium')
       .optional()
@@ -133,11 +191,34 @@ policiesRouter.put(
       .withMessage('status must be one of active, expired, cancelled'),
     body('effectiveDate').optional().isISO8601().withMessage('effectiveDate must be a valid date'),
     body('expirationDate').optional().isISO8601().withMessage('expirationDate must be a valid date'),
+    body().custom((_, { req }) => {
+      const { effectiveDate, expirationDate } = req.body as {
+        effectiveDate?: string;
+        expirationDate?: string;
+      };
+
+      if (!effectiveDate || !expirationDate) {
+        return true;
+      }
+
+      const effective = new Date(effectiveDate);
+      const expiration = new Date(expirationDate);
+
+      if (expiration <= effective) {
+        throw new Error('expirationDate must be after effectiveDate');
+      }
+
+      return true;
+    }),
   ]),
   async (req, res, next) => {
     try {
       const updates = { ...req.body } as Record<string, unknown>;
       delete updates.owner;
+
+      if (typeof updates.policyNumber === 'string') {
+        updates.policyNumber = normalizePolicyNumber(updates.policyNumber);
+      }
 
       const policy = await PolicyModel.findByIdAndUpdate(req.params.id, updates, {
         new: true,

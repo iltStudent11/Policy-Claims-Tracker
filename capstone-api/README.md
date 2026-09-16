@@ -25,6 +25,7 @@ TypeScript backend for the Policy Claims Tracker.
 - `npm run build` - Compile TypeScript
 - `npm run start` - Run compiled output from `dist/server.js`
 - `npm run seed` - Seed database (guarded; see below)
+- `npm run verify:auth-password` - Verify `/auth/login` and `/auth/me` responses never expose a `password` field
 
 ## Docker
 

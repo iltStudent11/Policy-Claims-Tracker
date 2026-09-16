@@ -1,12 +1,8 @@
-import { AxiosError } from 'axios'
 import { useEffect, useState, type FormEvent } from 'react'
 import api from '../api'
 import PageLinks from '../components/PageLinks'
 import type { PaginatedResponse, Policy, PolicyStatus, PolicyType } from '../types'
-
-interface ApiErrorResponse {
-  message?: string
-}
+import { getApiErrorMessage } from '../utils/apiError'
 
 interface PolicyResponse {
   data: Policy
@@ -14,10 +10,12 @@ interface PolicyResponse {
 
 const POLICY_TYPES: PolicyType[] = ['auto', 'home', 'life']
 const POLICY_STATUSES: PolicyStatus[] = ['active', 'expired', 'cancelled']
+const POLICY_NUMBER_PREFIX = 'POL-'
 
 const formatLabel = (value: string): string => {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
+
 
 const PoliciesPage = () => {
   const [policies, setPolicies] = useState<Policy[]>([])
@@ -33,7 +31,7 @@ const PoliciesPage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const [policyNumber, setPolicyNumber] = useState('')
+  const [policyNumber, setPolicyNumber] = useState(POLICY_NUMBER_PREFIX)
   const [holderName, setHolderName] = useState('')
   const [type, setType] = useState<PolicyType>('auto')
   const [premium, setPremium] = useState('')
@@ -58,8 +56,7 @@ const PoliciesPage = () => {
       setPolicies(response.data.data)
       setTotalPages(Math.max(response.data.pagination.totalPages, 1))
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setError(requestError.response?.data?.message ?? 'Failed to load policies.')
+      setError(getApiErrorMessage(caughtError, 'Unable to load policies. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -94,7 +91,7 @@ const PoliciesPage = () => {
   }
 
   const resetForm = () => {
-    setPolicyNumber('')
+    setPolicyNumber(POLICY_NUMBER_PREFIX)
     setHolderName('')
     setType('auto')
     setPremium('')
@@ -103,15 +100,73 @@ const PoliciesPage = () => {
     setExpirationDate('')
   }
 
+  const handlePolicyNumberChange = (value: string) => {
+    const upperValue = value.toUpperCase()
+    const sanitizedValue = upperValue.replace(/[^A-Z0-9-]/g, '')
+
+    if (!sanitizedValue) {
+      setPolicyNumber(POLICY_NUMBER_PREFIX)
+      return
+    }
+
+    if (sanitizedValue.startsWith(POLICY_NUMBER_PREFIX)) {
+      setPolicyNumber(sanitizedValue)
+      return
+    }
+
+    const suffix = sanitizedValue.replace(/^POL-?/, '')
+    setPolicyNumber(`${POLICY_NUMBER_PREFIX}${suffix}`)
+  }
+
   const handleCreatePolicy = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
     setSuccess(null)
 
+    const trimmedPolicyNumber = policyNumber.trim().toUpperCase()
+    const policyNumberSuffix = trimmedPolicyNumber.replace(/^POL-/, '')
+    const trimmedHolderName = holderName.trim()
     const premiumValue = Number(premium)
+    const policyNumberPattern = /^POL-[A-Z0-9-]+$/
+    const holderNamePattern = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/
+
+    if (trimmedPolicyNumber.length < 3 || trimmedPolicyNumber.length > 30) {
+      setError('Policy number must be between 3 and 30 characters.')
+      return
+    }
+
+    if (!policyNumberSuffix) {
+      setError('Policy number must include characters after POL-.')
+      return
+    }
+
+    if (!policyNumberPattern.test(trimmedPolicyNumber)) {
+      setError('Policy number can only contain letters, numbers, and hyphens.')
+      return
+    }
+
+    if (trimmedHolderName.length < 2 || trimmedHolderName.length > 100) {
+      setError('Holder name must be between 2 and 100 characters.')
+      return
+    }
+
+    if (!holderNamePattern.test(trimmedHolderName)) {
+      setError('Holder name may only contain letters, spaces, hyphens, and apostrophes.')
+      return
+    }
 
     if (Number.isNaN(premiumValue) || premiumValue < 0) {
       setError('Premium must be a valid number greater than or equal to 0.')
+      return
+    }
+
+    if (!effectiveDate || !expirationDate) {
+      setError('Effective and expiration dates are required.')
+      return
+    }
+
+    if (new Date(expirationDate) <= new Date(effectiveDate)) {
+      setError('Expiration date must be after effective date.')
       return
     }
 
@@ -119,8 +174,8 @@ const PoliciesPage = () => {
 
     try {
       await api.post<PolicyResponse>('/policies', {
-        policyNumber: policyNumber.trim(),
-        holderName: holderName.trim(),
+        policyNumber: trimmedPolicyNumber,
+        holderName: trimmedHolderName,
         type,
         premium: premiumValue,
         status,
@@ -145,8 +200,7 @@ const PoliciesPage = () => {
       setPolicies(response.data.data)
       setTotalPages(Math.max(response.data.pagination.totalPages, 1))
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setError(requestError.response?.data?.message ?? 'Failed to create policy.')
+      setError(getApiErrorMessage(caughtError, 'Unable to create policy. Please try again.'))
     } finally {
       setSubmitting(false)
     }
@@ -173,8 +227,7 @@ const PoliciesPage = () => {
         await fetchPolicies()
       }
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setError(requestError.response?.data?.message ?? 'Failed to delete policy.')
+      setError(getApiErrorMessage(caughtError, 'Unable to delete policy. Please try again.'))
     } finally {
       setDeletingId(null)
     }
@@ -205,7 +258,9 @@ const PoliciesPage = () => {
                 id="policyNumber"
                 type="text"
                 value={policyNumber}
-                onChange={(event) => setPolicyNumber(event.target.value)}
+                onChange={(event) => handlePolicyNumberChange(event.target.value)}
+                maxLength={30}
+                pattern="POL-[A-Za-z0-9-]+"
                 required
                 disabled={submitting}
               />
@@ -218,6 +273,8 @@ const PoliciesPage = () => {
                 type="text"
                 value={holderName}
                 onChange={(event) => setHolderName(event.target.value)}
+                maxLength={100}
+                pattern="[A-Za-z]+([ '-][A-Za-z]+)*"
                 required
                 disabled={submitting}
               />
@@ -278,6 +335,7 @@ const PoliciesPage = () => {
                 type="date"
                 value={effectiveDate}
                 onChange={(event) => setEffectiveDate(event.target.value)}
+                max={expirationDate || undefined}
                 required
                 disabled={submitting}
               />
@@ -290,6 +348,7 @@ const PoliciesPage = () => {
                 type="date"
                 value={expirationDate}
                 onChange={(event) => setExpirationDate(event.target.value)}
+                min={effectiveDate || undefined}
                 required
                 disabled={submitting}
               />

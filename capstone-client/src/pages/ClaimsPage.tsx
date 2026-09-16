@@ -1,13 +1,9 @@
-import { AxiosError } from 'axios'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import api from '../api'
 import PageLinks from '../components/PageLinks'
 import type { Claim, ClaimStatus, PaginatedResponse, Policy } from '../types'
-
-interface ApiErrorResponse {
-  message?: string
-}
+import { getApiErrorMessage } from '../utils/apiError'
 
 interface ClaimResponse {
   data: Claim
@@ -83,8 +79,7 @@ const ClaimsPage = () => {
         })
         setPolicies(response.data.data)
       } catch (caughtError) {
-        const requestError = caughtError as AxiosError<ApiErrorResponse>
-        setError(requestError.response?.data?.message ?? 'Failed to load policies.')
+        setError(getApiErrorMessage(caughtError, 'Unable to load policies. Please try again.'))
       } finally {
         setLoadingPolicies(false)
       }
@@ -111,8 +106,7 @@ const ClaimsPage = () => {
         setClaims(response.data.data)
         setTotalPages(Math.max(response.data.pagination.totalPages, 1))
       } catch (caughtError) {
-        const requestError = caughtError as AxiosError<ApiErrorResponse>
-        setError(requestError.response?.data?.message ?? 'Failed to load claims.')
+        setError(getApiErrorMessage(caughtError, 'Unable to load claims. Please try again.'))
       } finally {
         setLoadingClaims(false)
       }
@@ -185,8 +179,7 @@ const ClaimsPage = () => {
       setClaims(refreshed.data.data)
       setTotalPages(Math.max(refreshed.data.pagination.totalPages, 1))
     } catch (caughtError) {
-      const requestError = caughtError as AxiosError<ApiErrorResponse>
-      setFormError(requestError.response?.data?.message ?? 'Failed to create claim.')
+      setFormError(getApiErrorMessage(caughtError, 'Unable to create claim. Please try again.'))
     } finally {
       setSubmitting(false)
     }
