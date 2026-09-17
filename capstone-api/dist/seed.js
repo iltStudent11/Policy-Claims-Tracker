@@ -11,12 +11,7 @@ const Counter_1 = __importDefault(require("./models/Counter"));
 const Policy_1 = __importDefault(require("./models/Policy"));
 const User_1 = __importDefault(require("./models/User"));
 dotenv_1.default.config();
-const nodeEnv = (process.env.NODE_ENV || '').toLowerCase();
 const seedConfirm = (process.env.SEED_CONFIRM || '').toLowerCase();
-if (nodeEnv === 'production') {
-    console.error('Seeding is blocked when NODE_ENV=production');
-    process.exit(1);
-}
 if (seedConfirm !== 'true') {
     console.error('Seeding requires SEED_CONFIRM=true');
     process.exit(1);

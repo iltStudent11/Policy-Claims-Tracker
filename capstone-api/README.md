@@ -30,7 +30,7 @@ Default local runtime:
 - `npm run dev` - Run API with ts-node-dev
 - `npm run build` - Compile TypeScript
 - `npm run start` - Run compiled output from `dist/server.js`
-- `npm run seed` - Seed database (guarded; see below)
+- `npm run seed` - Seed database (destructive; confirmation required)
 - `npm run verify:auth-password` - Verify `/auth/login` and `/auth/me` responses never expose a `password` field
 
 ## Docker
@@ -65,5 +65,4 @@ SEED_CONFIRM=true npm run seed
 
 Safety guards:
 
-- Seeding is blocked when `NODE_ENV=production`.
 - Seeding is blocked unless `SEED_CONFIRM=true` is provided.
