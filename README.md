@@ -65,6 +65,32 @@ Compose notes:
 - `MONGODB_URI` is set to `mongodb://mongo:27017/policy-claims`.
 - API listens on port `5000`.
 
+## Production Compose (SSL)
+
+Use the production compose file (SSL-enabled client + internal-only API/Mongo):
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+App URLs with Production Compose:
+
+- HTTPS client: `https://localhost:8443`
+- HTTP redirect endpoint: `http://localhost:8080`
+
+Stop Production Compose services:
+
+```bash
+docker compose -f docker-compose.prod.yml down
+```
+
+Optional: provide a stronger JWT secret before startup:
+
+```bash
+export JWT_SECRET="replace-with-a-strong-secret"
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
 ## Kubernetes Quick Start (kind)
 
 Prerequisites:
