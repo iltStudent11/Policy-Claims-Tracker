@@ -1,8 +1,10 @@
+# Isolated namespace for all Policy Claims Tracker resources.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: policy-claims
 ---
+# MongoDB pod (single replica for local/dev usage).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -10,11 +12,13 @@ metadata:
   namespace: policy-claims
 spec:
   replicas: 1
+  # Deployment manages pods with this label.
   selector:
     matchLabels:
       app: mongo
   template:
     metadata:
+      # Pod label used by the matching Service selector.
       labels:
         app: mongo
     spec:
@@ -22,20 +26,24 @@ spec:
         - name: mongo
           image: mongo:7
           ports:
+            # Mongo listens on the default database port.
             - containerPort: 27017
 ---
+# Internal Service exposing Mongo to other pods in the namespace.
 apiVersion: v1
 kind: Service
 metadata:
   name: mongo
   namespace: policy-claims
 spec:
+  # Routes to pods labeled app=mongo.
   selector:
     app: mongo
   ports:
     - port: 27017
       targetPort: 27017
 ---
+# Backend API pod.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,11 +51,13 @@ metadata:
   namespace: policy-claims
 spec:
   replicas: 1
+  # Deployment manages pods with this label.
   selector:
     matchLabels:
       app: api
   template:
     metadata:
+      # Pod label used by the matching Service selector.
       labels:
         app: api
     spec:
@@ -55,6 +65,7 @@ spec:
         - name: api
           image: capstone-api:local
           imagePullPolicy: IfNotPresent
+          # Runtime configuration passed into the API container.
           env:
             - name: MONGODB_URI
               value: mongodb://mongo:27017/policy-claims
@@ -65,7 +76,9 @@ spec:
             - name: CLIENT_ORIGIN
               value: "*"
           ports:
+            # API container listens on 5000.
             - containerPort: 5000
+          # Kubernetes checks this endpoint before sending traffic.
           readinessProbe:
             httpGet:
               path: /api/health
@@ -73,18 +86,21 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
 ---
+# Internal Service exposing the API to other services/ingress.
 apiVersion: v1
 kind: Service
 metadata:
   name: api
   namespace: policy-claims
 spec:
+  # Routes to pods labeled app=api.
   selector:
     app: api
   ports:
     - port: 5000
       targetPort: 5000
 ---
+# Frontend client pod.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -92,11 +108,13 @@ metadata:
   namespace: policy-claims
 spec:
   replicas: 1
+  # Deployment manages pods with this label.
   selector:
     matchLabels:
       app: client
   template:
     metadata:
+      # Pod label used by the matching Service selector.
       labels:
         app: client
     spec:
@@ -105,16 +123,54 @@ spec:
           image: capstone-client:local
           imagePullPolicy: IfNotPresent
           ports:
+            # Nginx in the client image serves HTTP on port 80.
             - containerPort: 80
 ---
+# Internal Service for the frontend.
 apiVersion: v1
 kind: Service
 metadata:
   name: client
   namespace: policy-claims
 spec:
+  # Routes to pods labeled app=client.
   selector:
     app: client
   ports:
     - port: 80
       targetPort: 80
+---
+# Ingress provides external entry point with HTTPS termination.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: policy-claims-ingress
+  namespace: policy-claims
+spec:
+  # Assumes the NGINX Ingress Controller is installed.
+  ingressClassName: nginx
+  # TLS certificate/key are read from this secret.
+  tls:
+    - hosts:
+        - localhost
+      secretName: policy-claims-tls
+  rules:
+    - host: localhost
+      http:
+        paths:
+          # API traffic stays under /api and forwards to api service.
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 5000
+          # All other traffic goes to the frontend client.
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
