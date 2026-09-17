@@ -83,3 +83,24 @@ Use:
 ```text
 http://localhost:30080/login
 ```
+
+In EKS, the client Service uses `type: LoadBalancer`.
+
+Get the load balancer hostname:
+
+```bash
+kubectl -n policy-claims get svc client -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+echo
+```
+
+Open:
+
+```text
+http://<load-balancer-hostname>/login
+```
+
+EKS deployment/smoke-test references (run from repo root):
+
+- `./scripts/deploy-eks.sh`
+- `npm run smoke:eks`
+- `k8s/eks/README.md`

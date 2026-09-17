@@ -67,7 +67,7 @@ npm test
 
 ## Kubernetes
 
-The split K8s manifests run this API with:
+Local Kind manifests run this API with:
 
 - image: `capstone-api:latest`
 - `imagePullPolicy: Never` (requires `kind load docker-image`)
@@ -78,6 +78,13 @@ Manifest references:
 
 - API deployment/service: `../k8s/api.yaml`
 - Secrets used by API: `../k8s/secrets.yaml`
+
+EKS references:
+
+- EKS API deployment/service template: `../k8s/eks/api.yaml`
+- EKS namespace/storage/client manifests and deployment notes: `../k8s/eks/README.md`
+- Automated EKS deployment script (run from repo root): `./scripts/deploy-eks.sh`
+- Post-deploy smoke test (run from repo root): `./scripts/smoke-test-eks.sh` or `npm run smoke:eks`
 
 ## Seeding Data
 

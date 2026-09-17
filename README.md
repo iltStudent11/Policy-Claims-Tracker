@@ -15,7 +15,7 @@ Policy Claims Tracker is a full-stack claims management application with:
 - Frontend (`capstone-client`) sends requests to `/api`.
 - API (`capstone-api`) handles auth, validation, and CRUD operations.
 - MongoDB stores users, policies, claims, and counters.
-- Deployment targets include Docker Compose (dev/prod SSL) and Kubernetes/Kind.
+- Deployment targets include Docker Compose (dev/prod SSL), Kubernetes/Kind, and AWS EKS.
 
 ## Project Docs
 
@@ -26,6 +26,7 @@ Policy Claims Tracker is a full-stack claims management application with:
 - Frontend (React + Vite): [capstone-client/README.md](capstone-client/README.md)
 - Kubernetes manifests (split): [k8s/](k8s)
 - Kubernetes single-file manifest (legacy): [k8s/manifests.yaml](k8s/manifests.yaml)
+- EKS manifests and notes: [k8s/eks/README.md](k8s/eks/README.md)
 
 ## Local Development (Without Docker)
 
@@ -153,6 +154,40 @@ Seed data in Kubernetes (one-time destructive reset/insert):
 kubectl exec -n policy-claims deployment/api -- sh -lc 'SEED_CONFIRM=true node dist/seed.js'
 ```
 
+## Kubernetes Quick Start (EKS)
+
+Prerequisites:
+
+- AWS CLI authenticated (`aws sts get-caller-identity` succeeds)
+- `eksctl`, `kubectl`, and Docker installed
+
+From the repository root:
+
+```bash
+./scripts/deploy-eks.sh
+```
+
+Get the AWS load balancer hostname:
+
+```bash
+kubectl -n policy-claims get svc client -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+echo
+```
+
+Run post-deploy smoke checks:
+
+```bash
+npm run smoke:eks
+```
+
+Seed data in EKS (one-time destructive reset/insert):
+
+```bash
+kubectl exec -n policy-claims deployment/api -- sh -lc 'SEED_CONFIRM=true node dist/seed.js'
+```
+
+For variable overrides and manifest details, see [k8s/eks/README.md](k8s/eks/README.md).
+
 ## Testing
 
 Run API integration tests (Vitest + in-memory MongoDB):
@@ -196,7 +231,7 @@ npm test
 - Backend: Node.js, Express, TypeScript, JWT, express-validator, bcrypt
 - Database: MongoDB + Mongoose
 - Testing: Vitest, Supertest, React Testing Library, mongodb-memory-server
-- Containers/Orchestration: Docker, Docker Compose, Kubernetes, Kind
+- Containers/Orchestration: Docker, Docker Compose, Kubernetes, Kind, EKS
 
 ## Demo Talk Track (60 seconds)
 
