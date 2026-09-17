@@ -15,6 +15,14 @@ interface PoliciesResponse {
 
 const CLAIM_STATUSES: ClaimStatus[] = ['submitted', 'under-review', 'approved', 'denied', 'closed']
 
+const STATUS_CLASS_MAP: Record<ClaimStatus, string> = {
+  submitted: 'status-submitted',
+  'under-review': 'status-under-review',
+  approved: 'status-approved',
+  denied: 'status-denied',
+  closed: 'status-closed',
+}
+
 const formatStatusLabel = (status: string): string => {
   return status
     .split('-')
@@ -334,7 +342,11 @@ const ClaimsPage = () => {
                           currency: 'USD',
                         })}
                       </td>
-                      <td>{formatStatusLabel(claim.status)}</td>
+                      <td>
+                        <span className={`status-badge ${STATUS_CLASS_MAP[claim.status]}`}>
+                          {formatStatusLabel(claim.status)}
+                        </span>
+                      </td>
                       <td>{new Date(claim.incidentDate).toLocaleDateString()}</td>
                     </tr>
                   )
