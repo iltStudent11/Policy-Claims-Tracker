@@ -221,7 +221,7 @@ policiesRouter.put(
       }
 
       const policy = await PolicyModel.findByIdAndUpdate(req.params.id, updates, {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       }).populate('owner', 'name email role');
 

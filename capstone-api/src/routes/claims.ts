@@ -203,7 +203,7 @@ claimsRouter.put(
       }
 
       const claim = await ClaimModel.findByIdAndUpdate(req.params.id, updates, {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       })
         .populate('policy', 'policyNumber holderName type status')

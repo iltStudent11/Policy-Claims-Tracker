@@ -100,7 +100,7 @@ claimSchema.pre('save', async function assignClaimNumber() {
   const counter = await CounterModel.findByIdAndUpdate(
     'claimNumber',
     { $inc: { seq: 1 } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
+    { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
   );
 
   const sequence = counter?.seq ?? 1;

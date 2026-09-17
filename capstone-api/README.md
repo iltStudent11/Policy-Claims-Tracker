@@ -30,6 +30,8 @@ Default local runtime:
 - `npm run dev` - Run API with ts-node-dev
 - `npm run build` - Compile TypeScript
 - `npm run start` - Run compiled output from `dist/server.js`
+- `npm test` - Run Vitest API integration tests
+- `npm run test:watch` - Run Vitest in watch mode
 - `npm run seed` - Seed database (destructive; confirmation required)
 - `npm run verify:auth-password` - Verify `/auth/login` and `/auth/me` responses never expose a `password` field
 
@@ -51,7 +53,31 @@ Compose notes:
 
 - The `api` service depends on an internal `mongo` service.
 - `MONGODB_URI` is set to `mongodb://mongo:27017/policy-claims`.
-- API listens on port `5000` in Compose.
+- API listens on port `5000` in `docker-compose.yml` and port `4000` in `docker-compose.prod.yml`.
+
+## Testing
+
+API integration tests use Vitest + Supertest + `mongodb-memory-server` so tests run independently of your local Mongo instance.
+
+Run from `capstone-api`:
+
+```bash
+npm test
+```
+
+## Kubernetes
+
+The split K8s manifests run this API with:
+
+- image: `capstone-api:latest`
+- `imagePullPolicy: Never` (requires `kind load docker-image`)
+- replicas: `2`
+- health checks on `GET /api/health` at port `4000`
+
+Manifest references:
+
+- API deployment/service: `../k8s/api.yaml`
+- Secrets used by API: `../k8s/secrets.yaml`
 
 ## Seeding Data
 
@@ -66,3 +92,9 @@ SEED_CONFIRM=true npm run seed
 Safety guards:
 
 - Seeding is blocked unless `SEED_CONFIRM=true` is provided.
+
+Kubernetes seeding example:
+
+```bash
+kubectl exec -n policy-claims deployment/api -- sh -lc 'SEED_CONFIRM=true node dist/seed.js'
+```
