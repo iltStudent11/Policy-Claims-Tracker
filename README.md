@@ -108,6 +108,57 @@ export JWT_SECRET="replace-with-a-strong-secret"
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
+## Run Dev + Prod Together (No Port Conflicts)
+
+From the repository root:
+
+```bash
+npm run devprod:start
+```
+
+This starts:
+
+- Dev frontend on `http://localhost:5173`
+- Dev API on `http://localhost:5000`
+- Dev Mongo on `mongodb://127.0.0.1:27018` (dedicated container `pct-dev-mongo`)
+- Prod client on `http://localhost:8080` and `https://localhost:8443`
+- Prod internal API/Mongo on Compose network (`mongo:27017`, not host-published)
+
+Status and stop commands:
+
+```bash
+npm run devprod:status
+npm run devprod:stop
+```
+
+Restart command:
+
+```bash
+npm run devprod:restart
+```
+
+## Individual Environment Scripts
+
+Use these from the repository root.
+
+Dev-only (frontend + API + dedicated Mongo on `27018`):
+
+```bash
+npm run devenv:start
+npm run devenv:status
+npm run devenv:restart
+npm run devenv:stop
+```
+
+Prod-only (`docker-compose.prod.yml`):
+
+```bash
+npm run prodenv:start
+npm run prodenv:status
+npm run prodenv:restart
+npm run prodenv:stop
+```
+
 ## Kubernetes Quick Start (kind)
 
 Prerequisites:

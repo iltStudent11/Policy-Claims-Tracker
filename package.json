@@ -7,7 +7,19 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "echo \"No tests configured\"",
-    "smoke:eks": "./scripts/smoke-test-eks.sh"
+    "smoke:eks": "./scripts/smoke-test-eks.sh",
+    "devenv:start": "bash ./scripts/start-dev.sh",
+    "devenv:stop": "bash ./scripts/stop-dev.sh",
+    "devenv:status": "bash ./scripts/status-dev.sh",
+    "devenv:restart": "bash ./scripts/restart-dev.sh",
+    "prodenv:start": "bash ./scripts/start-prod.sh",
+    "prodenv:stop": "bash ./scripts/stop-prod.sh",
+    "prodenv:status": "bash ./scripts/status-prod.sh",
+    "prodenv:restart": "bash ./scripts/restart-prod.sh",
+    "devprod:start": "bash ./scripts/start-dev-prod.sh",
+    "devprod:stop": "bash ./scripts/stop-dev-prod.sh",
+    "devprod:status": "bash ./scripts/status-dev-prod.sh",
+    "devprod:restart": "bash ./scripts/restart-dev-prod.sh"
   },
   "repository": {
     "type": "git",
