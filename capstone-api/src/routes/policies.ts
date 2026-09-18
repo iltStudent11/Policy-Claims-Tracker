@@ -251,7 +251,7 @@ policiesRouter.delete(
         return res.status(404).json({ message: 'Policy not found' });
       }
 
-      return res.status(200).json({ message: 'Policy deleted successfully' });
+      return res.status(204).send();
     } catch (error) {
       return next(error);
     }

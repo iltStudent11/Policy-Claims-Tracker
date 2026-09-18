@@ -304,7 +304,7 @@ claimsRouter.delete(
         return res.status(404).json({ message: 'Claim not found' });
       }
 
-      return res.status(200).json({ message: 'Claim deleted successfully' });
+      return res.status(204).send();
     } catch (error) {
       return next(error);
     }

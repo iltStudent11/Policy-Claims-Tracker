@@ -5,6 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import authRouter from './routes/auth';
 import claimsRouter from './routes/claims';
+import policiesRouter from './routes/policies';
 import usersRouter from './routes/users';
 import errorHandler from './middleware/errorHandler';
 import PolicyModel from './models/Policy';
@@ -17,6 +18,7 @@ const createTestApp = () => {
 
   const apiRouter = Router();
   apiRouter.use('/auth', authRouter);
+  apiRouter.use('/policies', policiesRouter);
   apiRouter.use('/claims', claimsRouter);
   apiRouter.use('/users', usersRouter);
 
@@ -212,6 +214,41 @@ describe('API integration tests', () => {
     expect(response.body.data.claimNumber).toMatch(/^CLM-/);
   });
 
+  it('delete policy returns 204 with no content', async () => {
+    const adminEmail = buildEmail();
+
+    const adminRegistration = await request(app).post('/api/auth/register').send({
+      name: 'Policy Admin',
+      email: adminEmail,
+      password: 'Password123!',
+      role: 'admin',
+    });
+
+    const adminToken = adminRegistration.body.token as string;
+
+    const createPolicyResponse = await request(app)
+      .post('/api/policies')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        policyNumber: `POL-${Date.now()}`,
+        holderName: 'Morgan Policyholder',
+        type: 'auto',
+        premium: 1100,
+        status: 'active',
+        effectiveDate: '2026-01-01',
+        expirationDate: '2026-12-31',
+      });
+
+    expect(createPolicyResponse.status).toBe(201);
+
+    const deletePolicyResponse = await request(app)
+      .delete(`/api/policies/${createPolicyResponse.body.data._id}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(deletePolicyResponse.status).toBe(204);
+    expect(deletePolicyResponse.text).toBe('');
+  });
+
   it('get claims without auth returns 401', async () => {
     const response = await request(app).get('/api/claims');
 
@@ -369,8 +406,8 @@ describe('API integration tests', () => {
       .delete(`/api/claims/${claimResponse.body.data._id}`)
       .set('Authorization', `Bearer ${adminToken}`);
 
-    expect(adminDelete.status).toBe(200);
-    expect(adminDelete.body.message).toBe('Claim deleted successfully');
+    expect(adminDelete.status).toBe(204);
+    expect(adminDelete.text).toBe('');
   });
 
   it('admin can list, update, and delete other user accounts', async () => {
@@ -422,8 +459,8 @@ describe('API integration tests', () => {
       .delete(`/api/users/${adjuster!._id}`)
       .set('Authorization', `Bearer ${adminToken}`);
 
-    expect(deleteResponse.status).toBe(200);
-    expect(deleteResponse.body.message).toBe('User deleted successfully');
+    expect(deleteResponse.status).toBe(204);
+    expect(deleteResponse.text).toBe('');
 
     const deletedUser = await UserModel.findById(adjuster!._id);
     expect(deletedUser).toBeNull();
