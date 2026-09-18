@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import api from '../api'
 import PageLinks from '../components/PageLinks'
+import { useAuth } from '../context/AuthContext'
 import type { PaginatedResponse, Policy, PolicyStatus, PolicyType } from '../types'
 import { getApiErrorMessage } from '../utils/apiError'
 
@@ -18,6 +19,8 @@ const formatLabel = (value: string): string => {
 
 
 const PoliciesPage = () => {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [policies, setPolicies] = useState<Policy[]>([])
   const [typeFilter, setTypeFilter] = useState<string>('')
   const [search, setSearch] = useState('')
@@ -123,6 +126,11 @@ const PoliciesPage = () => {
     setError(null)
     setSuccess(null)
 
+    if (!isAdmin) {
+      setError('Only admins can create policies.')
+      return
+    }
+
     const trimmedPolicyNumber = policyNumber.trim().toUpperCase()
     const policyNumberSuffix = trimmedPolicyNumber.replace(/^POL-/, '')
     const trimmedHolderName = holderName.trim()
@@ -207,6 +215,11 @@ const PoliciesPage = () => {
   }
 
   const handleDeletePolicy = async (id: string) => {
+    if (!isAdmin) {
+      setError('Only admins can delete policies.')
+      return
+    }
+
     const confirmed = window.confirm('Delete this policy? This action cannot be undone.')
     if (!confirmed) {
       return
@@ -243,9 +256,11 @@ const PoliciesPage = () => {
           <h1>Policies</h1>
           <p className="claims-subtitle">View and manage all policies.</p>
         </div>
-        <button type="button" className="claims-new-button" onClick={() => setShowForm((current) => !current)}>
-          {showForm ? 'Cancel' : 'New Policy'}
-        </button>
+        {isAdmin ? (
+          <button type="button" className="claims-new-button" onClick={() => setShowForm((current) => !current)}>
+            {showForm ? 'Cancel' : 'New Policy'}
+          </button>
+        ) : null}
       </header>
 
       {showForm ? (
@@ -428,14 +443,18 @@ const PoliciesPage = () => {
                       {new Date(policy.expirationDate).toLocaleDateString()}
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="policy-delete-button"
-                        onClick={() => handleDeletePolicy(policy._id)}
-                        disabled={deletingId === policy._id}
-                      >
-                        {deletingId === policy._id ? 'Deleting...' : 'Delete'}
-                      </button>
+                      {isAdmin ? (
+                        <button
+                          type="button"
+                          className="policy-delete-button"
+                          onClick={() => handleDeletePolicy(policy._id)}
+                          disabled={deletingId === policy._id}
+                        >
+                          {deletingId === policy._id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                   </tr>
                 ))

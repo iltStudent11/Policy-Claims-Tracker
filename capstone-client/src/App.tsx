@@ -5,6 +5,7 @@ import ClaimsPage from './pages/ClaimsPage'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import PoliciesPage from './pages/PoliciesPage'
+import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
 import './App.css'
 
@@ -43,6 +44,14 @@ function App() {
           element={
             <ProtectedRoute>
               <PoliciesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

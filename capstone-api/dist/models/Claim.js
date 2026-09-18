@@ -90,7 +90,7 @@ claimSchema.pre('save', async function assignClaimNumber() {
     if (!claim.isNew || claim.claimNumber) {
         return;
     }
-    const counter = await Counter_1.default.findByIdAndUpdate('claimNumber', { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true });
+    const counter = await Counter_1.default.findByIdAndUpdate('claimNumber', { $inc: { seq: 1 } }, { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true });
     const sequence = counter?.seq ?? 1;
     claim.claimNumber = `CLM-${1000 + sequence}`;
 });

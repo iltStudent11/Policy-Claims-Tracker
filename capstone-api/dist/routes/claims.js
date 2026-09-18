@@ -6,10 +6,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const auth_1 = __importDefault(require("../middleware/auth"));
+const authorize_1 = __importDefault(require("../middleware/authorize"));
 const validate_1 = __importDefault(require("../middleware/validate"));
 const Claim_1 = __importDefault(require("../models/Claim"));
 const Policy_1 = __importDefault(require("../models/Policy"));
+const User_1 = __importDefault(require("../models/User"));
 const claimsRouter = (0, express_1.Router)();
+const canModifyClaim = (reqUser, assignedTo) => {
+    if (!reqUser) {
+        return false;
+    }
+    if (reqUser.role === 'admin') {
+        return true;
+    }
+    if (!assignedTo) {
+        return false;
+    }
+    return String(reqUser._id) === String(assignedTo);
+};
 claimsRouter.use(auth_1.default);
 claimsRouter.get('/', (0, validate_1.default)([
     (0, express_validator_1.query)('page').optional().isInt({ min: 1 }).withMessage('page must be an integer greater than 0'),
@@ -164,6 +178,13 @@ claimsRouter.put('/:id', (0, validate_1.default)([
     (0, express_validator_1.body)('assignedTo').optional().isMongoId().withMessage('assignedTo must be a valid id'),
 ]), async (req, res, next) => {
     try {
+        const existingClaim = await Claim_1.default.findById(req.params.id);
+        if (!existingClaim) {
+            return res.status(404).json({ message: 'Claim not found' });
+        }
+        if (!canModifyClaim(req.user, existingClaim.assignedTo ? String(existingClaim.assignedTo) : null)) {
+            return res.status(403).json({ message: 'You are not allowed to modify this claim.' });
+        }
         const updates = { ...req.body };
         delete updates.claimNumber;
         delete updates.notes;
@@ -173,10 +194,15 @@ claimsRouter.put('/:id', (0, validate_1.default)([
                 return res.status(404).json({ message: 'Policy not found' });
             }
         }
-        const claim = await Claim_1.default.findByIdAndUpdate(req.params.id, updates, {
-            new: true,
-            runValidators: true,
-        })
+        if (updates.assignedTo) {
+            const assignedAdjuster = await User_1.default.findOne({ _id: updates.assignedTo, role: 'adjuster' });
+            if (!assignedAdjuster) {
+                return res.status(400).json({ message: 'assignedTo must reference an adjuster user' });
+            }
+        }
+        Object.assign(existingClaim, updates);
+        await existingClaim.save();
+        const claim = await Claim_1.default.findById(existingClaim._id)
             .populate('policy', 'policyNumber holderName type status')
             .populate('assignedTo', 'name email role')
             .populate('notes.author', 'name email role');
@@ -215,7 +241,7 @@ claimsRouter.post('/:id/notes', (0, validate_1.default)([
         return next(error);
     }
 });
-claimsRouter.delete('/:id', (0, validate_1.default)([(0, express_validator_1.param)('id').isMongoId().withMessage('Invalid claim id')]), async (req, res, next) => {
+claimsRouter.delete('/:id', (0, authorize_1.default)('admin'), (0, validate_1.default)([(0, express_validator_1.param)('id').isMongoId().withMessage('Invalid claim id')]), async (req, res, next) => {
     try {
         const claim = await Claim_1.default.findByIdAndDelete(req.params.id);
         if (!claim) {

@@ -1,11 +1,29 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import authMiddleware, { AuthenticatedRequest } from '../middleware/auth';
+import authorize from '../middleware/authorize';
 import validate from '../middleware/validate';
 import ClaimModel from '../models/Claim';
 import PolicyModel from '../models/Policy';
+import UserModel from '../models/User';
 
 const claimsRouter = Router();
+
+const canModifyClaim = (reqUser: AuthenticatedRequest['user'], assignedTo?: string | null) => {
+  if (!reqUser) {
+    return false;
+  }
+
+  if (reqUser.role === 'admin') {
+    return true;
+  }
+
+  if (!assignedTo) {
+    return false;
+  }
+
+  return String(reqUser._id) === String(assignedTo);
+};
 
 claimsRouter.use(authMiddleware);
 
@@ -189,8 +207,18 @@ claimsRouter.put(
       .withMessage('status must be one of submitted, under-review, approved, denied, closed'),
     body('assignedTo').optional().isMongoId().withMessage('assignedTo must be a valid id'),
   ]),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res, next) => {
     try {
+      const existingClaim = await ClaimModel.findById(req.params.id);
+
+      if (!existingClaim) {
+        return res.status(404).json({ message: 'Claim not found' });
+      }
+
+      if (!canModifyClaim(req.user, existingClaim.assignedTo ? String(existingClaim.assignedTo) : null)) {
+        return res.status(403).json({ message: 'You are not allowed to modify this claim.' });
+      }
+
       const updates = { ...req.body } as Record<string, unknown>;
       delete updates.claimNumber;
       delete updates.notes;
@@ -202,10 +230,18 @@ claimsRouter.put(
         }
       }
 
-      const claim = await ClaimModel.findByIdAndUpdate(req.params.id, updates, {
-        returnDocument: 'after',
-        runValidators: true,
-      })
+      if (updates.assignedTo) {
+        const assignedAdjuster = await UserModel.findOne({ _id: updates.assignedTo, role: 'adjuster' });
+
+        if (!assignedAdjuster) {
+          return res.status(400).json({ message: 'assignedTo must reference an adjuster user' });
+        }
+      }
+
+      Object.assign(existingClaim, updates);
+      await existingClaim.save();
+
+      const claim = await ClaimModel.findById(existingClaim._id)
         .populate('policy', 'policyNumber holderName type status')
         .populate('assignedTo', 'name email role')
         .populate('notes.author', 'name email role');
@@ -258,6 +294,7 @@ claimsRouter.post(
 
 claimsRouter.delete(
   '/:id',
+  authorize('admin'),
   validate([param('id').isMongoId().withMessage('Invalid claim id')]),
   async (req, res, next) => {
     try {

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const auth_1 = __importDefault(require("../middleware/auth"));
+const authorize_1 = __importDefault(require("../middleware/authorize"));
 const validate_1 = __importDefault(require("../middleware/validate"));
 const Policy_1 = __importDefault(require("../models/Policy"));
 const policiesRouter = (0, express_1.Router)();
@@ -77,7 +78,7 @@ policiesRouter.get('/:id', (0, validate_1.default)([(0, express_validator_1.para
         return next(error);
     }
 });
-policiesRouter.post('/', (0, validate_1.default)([
+policiesRouter.post('/', (0, authorize_1.default)('admin'), (0, validate_1.default)([
     (0, express_validator_1.body)('policyNumber')
         .trim()
         .notEmpty()
@@ -130,7 +131,7 @@ policiesRouter.post('/', (0, validate_1.default)([
         return next(error);
     }
 });
-policiesRouter.put('/:id', (0, validate_1.default)([
+policiesRouter.put('/:id', (0, authorize_1.default)('admin'), (0, validate_1.default)([
     (0, express_validator_1.param)('id').isMongoId().withMessage('Invalid policy id'),
     (0, express_validator_1.body)('policyNumber')
         .optional()
@@ -182,7 +183,7 @@ policiesRouter.put('/:id', (0, validate_1.default)([
             updates.policyNumber = normalizePolicyNumber(updates.policyNumber);
         }
         const policy = await Policy_1.default.findByIdAndUpdate(req.params.id, updates, {
-            new: true,
+            returnDocument: 'after',
             runValidators: true,
         }).populate('owner', 'name email role');
         if (!policy) {
@@ -194,7 +195,7 @@ policiesRouter.put('/:id', (0, validate_1.default)([
         return next(error);
     }
 });
-policiesRouter.delete('/:id', (0, validate_1.default)([(0, express_validator_1.param)('id').isMongoId().withMessage('Invalid policy id')]), async (req, res, next) => {
+policiesRouter.delete('/:id', (0, authorize_1.default)('admin'), (0, validate_1.default)([(0, express_validator_1.param)('id').isMongoId().withMessage('Invalid policy id')]), async (req, res, next) => {
     try {
         const policy = await Policy_1.default.findByIdAndDelete(req.params.id);
         if (!policy) {

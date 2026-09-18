@@ -1,30 +1,40 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import PageLinks from '../components/PageLinks'
 import { useAuth } from '../context/AuthContext'
-import type { UserRole } from '../types'
 
 const namePattern = /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/
 const emailPattern = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
 
-const RegisterPage = () => {
-  const { register, loading, user } = useAuth()
-  const navigate = useNavigate()
-  const canSelectAdminRole = user?.role === 'admin'
+const ProfilePage = () => {
+  const { user, updateProfile, loading } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [role, setRole] = useState<UserRole>('adjuster')
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!canSelectAdminRole && role !== 'adjuster') {
-      setRole('adjuster')
+    setName(user?.name ?? '')
+    setEmail(user?.email ?? '')
+  }, [user])
+
+  useEffect(() => {
+    if (!success) {
+      return
     }
-  }, [canSelectAdminRole, role])
+
+    const timeoutId = window.setTimeout(() => {
+      setSuccess(null)
+    }, 3000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [success])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
+    setSuccess(null)
 
     const trimmedName = name.trim()
     const trimmedEmail = email.trim().toLowerCase()
@@ -40,19 +50,18 @@ const RegisterPage = () => {
     }
 
     try {
-      const selectedRole: UserRole = canSelectAdminRole ? role : 'adjuster'
-      await register(trimmedName, trimmedEmail, password, selectedRole)
-      navigate('/')
+      await updateProfile(trimmedName, trimmedEmail)
+      setSuccess('Profile updated successfully.')
     } catch (caughtError) {
-      const message = caughtError instanceof Error ? caughtError.message : 'Unable to register. Please try again.'
+      const message = caughtError instanceof Error ? caughtError.message : 'Unable to update profile. Please try again.'
       setError(message)
     }
   }
 
   return (
     <main className="auth-page">
-      <section className="auth-card" aria-labelledby="register-title">
-        <h1 id="register-title">Register</h1>
+      <section className="auth-card" aria-labelledby="profile-title">
+        <h1 id="profile-title">Profile</h1>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label htmlFor="name">
@@ -66,6 +75,7 @@ const RegisterPage = () => {
               pattern="[A-Za-z]+(?:\s+[A-Za-z]+)*"
               title="Name may only contain letters and spaces."
               required
+              disabled={loading}
             />
           </label>
 
@@ -80,47 +90,28 @@ const RegisterPage = () => {
               pattern="[^\s@]+@[^\s@]+\.[A-Za-z]{2,}"
               title="Enter a valid email address (example: name@example.com)."
               required
+              disabled={loading}
             />
-          </label>
-
-          <label htmlFor="password">
-            Password
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </label>
-
-          <label htmlFor="role">
-            Role
-            <select
-              id="role"
-              value={role}
-              onChange={(event) => setRole(event.target.value as UserRole)}
-              required
-            >
-              <option value="adjuster">Adjuster</option>
-              {canSelectAdminRole ? <option value="admin">Admin</option> : null}
-            </select>
           </label>
 
           {error ? <p className="auth-error">{error}</p> : null}
+          {success ? <p className="claims-success">{success}</p> : null}
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Creating account...' : 'Register'}
+            {loading ? 'Saving...' : 'Save Profile'}
           </button>
         </form>
 
-        <p className="auth-link-row">
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
+        <PageLinks
+          links={[
+            { to: '/', label: 'Dashboard' },
+            { to: '/claims', label: 'Claims' },
+            { to: '/policies', label: 'Policies' },
+          ]}
+        />
       </section>
     </main>
   )
 }
 
-export default RegisterPage
+export default ProfilePage

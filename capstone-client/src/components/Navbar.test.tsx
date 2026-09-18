@@ -24,6 +24,7 @@ describe('Navbar', () => {
       loading: false,
       login: vi.fn(),
       register: vi.fn(),
+      updateProfile: vi.fn(),
       logout: vi.fn(),
     })
   })
@@ -39,5 +40,6 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Claims' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Policies' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Profile' })).toBeInTheDocument()
   })
 })

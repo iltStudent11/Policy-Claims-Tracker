@@ -8,7 +8,7 @@ import {
   type PropsWithChildren,
 } from 'react'
 import api from '../api'
-import type { AuthResponse, User, UserRole } from '../types'
+import type { AuthResponse, CurrentUserResponse, User, UserRole } from '../types'
 import { getApiErrorMessage } from '../utils/apiError'
 
 interface AuthContextValue {
@@ -17,6 +17,7 @@ interface AuthContextValue {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string, role: UserRole) => Promise<void>
+  updateProfile: (name: string, email: string) => Promise<void>
   logout: () => void
 }
 
@@ -91,6 +92,25 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     [persistAuth],
   )
 
+  const updateProfile = useCallback(async (name: string, email: string) => {
+    setLoading(true)
+    try {
+      const response = await api.put<CurrentUserResponse>('/auth/me', { name, email })
+      const updatedUser = response.data.user
+
+      if (!updatedUser) {
+        throw new Error('Profile response did not include a user.')
+      }
+
+      setUser(updatedUser)
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser))
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Unable to update profile. Please try again.'))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   const logout = useCallback(() => {
     setToken(null)
     setUser(null)
@@ -105,9 +125,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       loading,
       login,
       register,
+      updateProfile,
       logout,
     }),
-    [user, token, loading, login, register, logout],
+    [user, token, loading, login, register, updateProfile, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

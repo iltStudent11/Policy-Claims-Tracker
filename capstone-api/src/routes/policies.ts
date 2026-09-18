@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { Types } from 'mongoose';
 import authMiddleware, { AuthenticatedRequest } from '../middleware/auth';
+import authorize from '../middleware/authorize';
 import validate from '../middleware/validate';
 import PolicyModel from '../models/Policy';
 
@@ -96,6 +97,7 @@ policiesRouter.get(
 
 policiesRouter.post(
   '/',
+  authorize('admin'),
   validate([
     body('policyNumber')
       .trim()
@@ -159,6 +161,7 @@ policiesRouter.post(
 
 policiesRouter.put(
   '/:id',
+  authorize('admin'),
   validate([
     param('id').isMongoId().withMessage('Invalid policy id'),
     body('policyNumber')
@@ -238,6 +241,7 @@ policiesRouter.put(
 
 policiesRouter.delete(
   '/:id',
+  authorize('admin'),
   validate([param('id').isMongoId().withMessage('Invalid policy id')]),
   async (req, res, next) => {
     try {

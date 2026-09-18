@@ -39,9 +39,46 @@ Component tests use Vitest + React Testing Library.
 
 Current test coverage includes:
 
-- Login page field rendering
+- Login page field rendering and invalid email validation
+- Register page role visibility and name/email validation
+- Profile page rendering and profile email validation
 - Navbar branding/navigation rendering
 - Protected route redirect for unauthenticated users
+- Role-based UI behavior for policies and claim detail actions
+
+## User Creation and Profile UX
+
+Registration and profile edit UI enforce:
+
+- Name: letters and spaces only.
+- Email: valid email format with a domain suffix (for example, `.com`, `.net`).
+
+Auth and profile pages:
+
+- `/register`: non-admin users can only create adjuster accounts; admin option is visible only to admins.
+- `/login`: email format is validated before submit.
+- `/profile`: authenticated users can update their own name and email.
+
+Role-based UI behavior:
+
+- Policies page: create/delete controls visible only to admins.
+- Claim detail page: update controls visible to admins or assigned adjuster; delete visible only to admins.
+
+## How to Test User Creation/Profile Changes (Client)
+
+Manual UI checklist:
+
+1. Open `/register` and enter invalid name (for example, `Jane1!`) -> expect name validation error.
+2. Open `/register` and enter invalid email (for example, `jane@domain`) -> expect email validation error.
+3. Verify non-admin registration cannot choose `Admin` role.
+4. Login as admin and verify `Admin` role option is visible on register page.
+5. Open `/login` with invalid email format and confirm validation error.
+6. Open `/profile`, test invalid name/email values, and confirm validation errors.
+7. Save valid profile updates and confirm success message + updated displayed user info.
+8. Verify role-based controls:
+   - adjuster does not see policy create/delete actions
+   - admin sees policy create/delete actions
+   - claim delete visible only to admin
 
 Run from `capstone-client`:
 

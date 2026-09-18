@@ -204,6 +204,40 @@ cd capstone-client
 npm test
 ```
 
+## User Creation and Profile Rules
+
+- Name validation (register and profile update): letters and spaces only.
+- Email validation (register, login, and profile update): must be a valid address with a domain suffix (for example, `.com`, `.net`).
+- Additional admin creation rule: once an admin exists, only an authenticated admin can create another admin user.
+- New profile update flow: authenticated users can update their own name and email from the client Profile page.
+
+Role-based permissions enforced by API:
+
+- `admin`
+   - create, update, and delete policies
+   - delete any claim
+   - update any claim
+- `adjuster`
+   - cannot create/update/delete policies
+   - can update only claims assigned to them
+   - cannot delete claims
+
+## How to Test User Creation/Profile Changes
+
+Use this quick checklist in local development:
+
+1. Start API and client (`npm run dev` in both projects).
+2. Register with invalid name (for example, `John1!`) and confirm validation error.
+3. Register with invalid email (for example, `john@domain`) and confirm validation error.
+4. Register a valid admin user (first admin creation allowed).
+5. Attempt to register another admin while logged out/non-admin and confirm it is blocked.
+6. Login with invalid email format and confirm validation error.
+7. Open Profile page and try invalid name/email values; confirm validation errors.
+8. Update Profile with valid name/email; confirm success and updated navbar/user state.
+9. Verify role permissions:
+   - adjuster cannot create/delete policies or delete claims
+   - admin can manage policies and delete claims
+
 ## API Endpoint Reference
 
 | Method | Endpoint | Auth Required | Description |
@@ -212,6 +246,7 @@ npm test
 | POST | `/api/auth/register` | No | Register a user and return JWT |
 | POST | `/api/auth/login` | No | Login and return JWT |
 | GET | `/api/auth/me` | Yes | Get current authenticated user |
+| PUT | `/api/auth/me` | Yes | Update current user profile (name/email) |
 | GET | `/api/dashboard` | Yes | Get dashboard summary/statistics |
 | GET | `/api/claims` | Yes | List claims with filters/pagination |
 | POST | `/api/claims` | Yes | Create a new claim |

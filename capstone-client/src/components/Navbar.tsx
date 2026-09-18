@@ -40,6 +40,14 @@ const Navbar = () => {
         >
           Policies
         </NavLink>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            isActive ? 'app-navbar-link app-navbar-link-active' : 'app-navbar-link'
+          }
+        >
+          Profile
+        </NavLink>
       </nav>
 
       <div className="app-navbar-user" aria-label="Current user">

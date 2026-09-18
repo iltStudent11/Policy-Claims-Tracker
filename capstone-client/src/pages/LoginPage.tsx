@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
+
 const LoginPage = () => {
   const { login, loading } = useAuth()
   const navigate = useNavigate()
@@ -13,8 +15,15 @@ const LoginPage = () => {
     event.preventDefault()
     setError(null)
 
+    const trimmedEmail = email.trim().toLowerCase()
+
+    if (!emailPattern.test(trimmedEmail)) {
+      setError('Enter a valid email address (example: name@example.com).')
+      return
+    }
+
     try {
-      await login(email, password)
+      await login(trimmedEmail, password)
       navigate('/')
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : 'Unable to log in. Please try again.'
@@ -36,6 +45,8 @@ const LoginPage = () => {
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              pattern="[^\s@]+@[^\s@]+\.[A-Za-z]{2,}"
+              title="Enter a valid email address (example: name@example.com)."
               required
             />
           </label>

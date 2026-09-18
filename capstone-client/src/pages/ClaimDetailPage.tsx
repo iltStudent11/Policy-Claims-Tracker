@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api'
 import PageLinks from '../components/PageLinks'
+import { useAuth } from '../context/AuthContext'
 import type { Claim, ClaimStatus } from '../types'
 import { getApiErrorMessage } from '../utils/apiError'
 
@@ -21,6 +22,7 @@ const formatStatusLabel = (status: string): string => {
 const ClaimDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [claim, setClaim] = useState<Claim | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,6 +52,24 @@ const ClaimDetailPage = () => {
 
     return claim.assignedTo
   }, [claim])
+
+  const canEditClaim = useMemo(() => {
+    if (!user || !claim) {
+      return false
+    }
+
+    if (user.role === 'admin') {
+      return true
+    }
+
+    if (!claim.assignedTo || typeof claim.assignedTo === 'string') {
+      return false
+    }
+
+    return claim.assignedTo._id === user._id
+  }, [claim, user])
+
+  const canDeleteClaim = user?.role === 'admin'
 
   const fetchClaim = async () => {
     if (!id) {
@@ -92,7 +112,7 @@ const ClaimDetailPage = () => {
   }, [success])
 
   const handleStatusUpdate = async () => {
-    if (!claim || statusValue === claim.status) {
+    if (!claim || statusValue === claim.status || !canEditClaim) {
       return
     }
 
@@ -140,7 +160,7 @@ const ClaimDetailPage = () => {
   }
 
   const handleDelete = async () => {
-    if (!claim) {
+    if (!claim || !canDeleteClaim) {
       return
     }
 
@@ -257,26 +277,30 @@ const ClaimDetailPage = () => {
 
       <section className="claim-detail-panel" aria-label="Status update">
         <h2>Update Status</h2>
-        <div className="claim-status-controls">
-          <select
-            value={statusValue}
-            onChange={(event) => setStatusValue(event.target.value as ClaimStatus)}
-            disabled={statusLoading}
-          >
-            {CLAIM_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {formatStatusLabel(status)}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={handleStatusUpdate}
-            disabled={statusLoading || statusValue === claim.status}
-          >
-            {statusLoading ? 'Updating...' : 'Update'}
-          </button>
-        </div>
+        {canEditClaim ? (
+          <div className="claim-status-controls">
+            <select
+              value={statusValue}
+              onChange={(event) => setStatusValue(event.target.value as ClaimStatus)}
+              disabled={statusLoading}
+            >
+              {CLAIM_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {formatStatusLabel(status)}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleStatusUpdate}
+              disabled={statusLoading || statusValue === claim.status}
+            >
+              {statusLoading ? 'Updating...' : 'Update'}
+            </button>
+          </div>
+        ) : (
+          <p>Only admins or the assigned adjuster can update this claim.</p>
+        )}
       </section>
 
       <section className="claim-detail-panel" aria-label="Description">
@@ -322,12 +346,14 @@ const ClaimDetailPage = () => {
         </form>
       </section>
 
-      <section className="claim-detail-panel" aria-label="Delete claim">
-        <h2>Delete Claim</h2>
-        <button type="button" className="claim-delete-button" onClick={handleDelete} disabled={deleteLoading}>
-          {deleteLoading ? 'Deleting...' : 'Delete Claim'}
-        </button>
-      </section>
+      {canDeleteClaim ? (
+        <section className="claim-detail-panel" aria-label="Delete claim">
+          <h2>Delete Claim</h2>
+          <button type="button" className="claim-delete-button" onClick={handleDelete} disabled={deleteLoading}>
+            {deleteLoading ? 'Deleting...' : 'Delete Claim'}
+          </button>
+        </section>
+      ) : null}
     </main>
   )
 }

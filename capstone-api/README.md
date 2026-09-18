@@ -35,6 +35,47 @@ Default local runtime:
 - `npm run seed` - Seed database (destructive; confirmation required)
 - `npm run verify:auth-password` - Verify `/auth/login` and `/auth/me` responses never expose a `password` field
 
+## Auth and User Rules
+
+Registration and profile update enforce:
+
+- Name: letters and spaces only.
+- Email: valid email format with a domain suffix (for example, `.com`, `.net`).
+
+Login enforces:
+
+- Email format validation before credential lookup.
+
+Role constraints:
+
+- The first admin can be created during registration.
+- After an admin exists, only an authenticated admin can create additional admin users.
+
+Profile endpoint:
+
+- `PUT /api/auth/me` (auth required) updates the authenticated user's name and email.
+
+API permission highlights:
+
+- Policies (`POST/PUT/DELETE /api/policies/*`): admin only.
+- Claim delete (`DELETE /api/claims/:id`): admin only.
+- Claim update (`PUT /api/claims/:id`): admin or assigned adjuster.
+
+## How to Test User Creation/Profile Changes (API)
+
+Quick API checks:
+
+1. Run integration tests:
+   ```bash
+   npm test
+   ```
+2. Confirm registration rejects invalid name (`name may only contain letters and spaces`).
+3. Confirm registration rejects invalid email format (`email must be a valid email address`).
+4. Confirm login rejects invalid email format.
+5. Confirm non-admin cannot create additional admin users after first admin exists.
+6. Confirm `PUT /api/auth/me` updates valid name/email for authenticated user.
+7. Confirm `PUT /api/auth/me` rejects invalid name/email and duplicate email conflicts.
+
 ## Docker
 
 Build image from project root:
