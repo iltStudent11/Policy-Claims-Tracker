@@ -33,6 +33,7 @@ const vitest_1 = require("vitest");
 const mongodb_memory_server_1 = require("mongodb-memory-server");
 const auth_1 = __importDefault(require("./routes/auth"));
 const claims_1 = __importDefault(require("./routes/claims"));
+const users_1 = __importDefault(require("./routes/users"));
 const errorHandler_1 = __importDefault(require("./middleware/errorHandler"));
 const Policy_1 = __importDefault(require("./models/Policy"));
 const User_1 = __importDefault(require("./models/User"));
@@ -42,6 +43,7 @@ const createTestApp = () => {
     const apiRouter = (0, express_1.Router)();
     apiRouter.use('/auth', auth_1.default);
     apiRouter.use('/claims', claims_1.default);
+    apiRouter.use('/users', users_1.default);
     app.use('/api', apiRouter);
     app.use(errorHandler_1.default);
     return app;
@@ -328,5 +330,63 @@ const buildEmail = () => `user-${Date.now()}-${Math.random().toString(36).slice(
             .set('Authorization', `Bearer ${adminToken}`);
         (0, vitest_1.expect)(adminDelete.status).toBe(200);
         (0, vitest_1.expect)(adminDelete.body.message).toBe('Claim deleted successfully');
+    });
+    (0, vitest_1.it)('admin can list, update, and delete other user accounts', async () => {
+        const adminEmail = buildEmail();
+        const adjusterEmail = buildEmail();
+        const adminRegistration = await (0, supertest_1.default)(app).post('/api/auth/register').send({
+            name: 'Avery Admin',
+            email: adminEmail,
+            password: 'Password123!',
+            role: 'admin',
+        });
+        await (0, supertest_1.default)(app).post('/api/auth/register').send({
+            name: 'Taylor Adjuster',
+            email: adjusterEmail,
+            password: 'Password123!',
+            role: 'adjuster',
+        });
+        const adminToken = adminRegistration.body.token;
+        const adjuster = await User_1.default.findOne({ email: adjusterEmail });
+        (0, vitest_1.expect)(adjuster).not.toBeNull();
+        const listResponse = await (0, supertest_1.default)(app)
+            .get('/api/users')
+            .set('Authorization', `Bearer ${adminToken}`);
+        (0, vitest_1.expect)(listResponse.status).toBe(200);
+        (0, vitest_1.expect)(Array.isArray(listResponse.body.users)).toBe(true);
+        (0, vitest_1.expect)(listResponse.body.users.length).toBe(1);
+        (0, vitest_1.expect)(listResponse.body.users[0].email).toBe(adjusterEmail);
+        const updateResponse = await (0, supertest_1.default)(app)
+            .put(`/api/users/${adjuster._id}`)
+            .set('Authorization', `Bearer ${adminToken}`)
+            .send({
+            name: 'Taylor Updated',
+            email: adjusterEmail,
+            role: 'admin',
+        });
+        (0, vitest_1.expect)(updateResponse.status).toBe(200);
+        (0, vitest_1.expect)(updateResponse.body.user.name).toBe('Taylor Updated');
+        (0, vitest_1.expect)(updateResponse.body.user.role).toBe('admin');
+        const deleteResponse = await (0, supertest_1.default)(app)
+            .delete(`/api/users/${adjuster._id}`)
+            .set('Authorization', `Bearer ${adminToken}`);
+        (0, vitest_1.expect)(deleteResponse.status).toBe(200);
+        (0, vitest_1.expect)(deleteResponse.body.message).toBe('User deleted successfully');
+        const deletedUser = await User_1.default.findById(adjuster._id);
+        (0, vitest_1.expect)(deletedUser).toBeNull();
+    });
+    (0, vitest_1.it)('non-admin cannot list user accounts', async () => {
+        const adjusterRegistration = await (0, supertest_1.default)(app).post('/api/auth/register').send({
+            name: 'Jordan Adjuster',
+            email: buildEmail(),
+            password: 'Password123!',
+            role: 'adjuster',
+        });
+        const adjusterToken = adjusterRegistration.body.token;
+        const response = await (0, supertest_1.default)(app)
+            .get('/api/users')
+            .set('Authorization', `Bearer ${adjusterToken}`);
+        (0, vitest_1.expect)(response.status).toBe(403);
+        (0, vitest_1.expect)(response.body.message).toBe('Forbidden');
     });
 });

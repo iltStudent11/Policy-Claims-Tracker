@@ -63,6 +63,7 @@ Role-based UI behavior:
 
 - Policies page: create/delete controls visible only to admins.
 - Claim detail page: update controls visible to admins or assigned adjuster; delete visible only to admins.
+- Users page (`/users`): visible only to admins for viewing/editing other user accounts.
 
 ## How to Test User Creation/Profile Changes (Client)
 
@@ -79,6 +80,11 @@ Manual UI checklist:
    - adjuster does not see policy create/delete actions
    - admin sees policy create/delete actions
    - claim delete visible only to admin
+9. Login as admin and open `/users`:
+   - verify the Users tab is visible in navbar
+   - verify user list loads and Edit opens inline form
+   - verify updating another user's name/email/role succeeds
+10. Login as adjuster and verify Users tab/page is not accessible.
 
 Run from `capstone-client`:
 

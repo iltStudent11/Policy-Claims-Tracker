@@ -35,6 +35,7 @@ const auth_1 = __importDefault(require("./routes/auth"));
 const claims_1 = __importDefault(require("./routes/claims"));
 const dashboard_1 = __importDefault(require("./routes/dashboard"));
 const policies_1 = __importDefault(require("./routes/policies"));
+const users_1 = __importDefault(require("./routes/users"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT) || 5000;
@@ -51,6 +52,7 @@ apiRouter.use('/auth', auth_1.default);
 apiRouter.use('/policies', policies_1.default);
 apiRouter.use('/claims', claims_1.default);
 apiRouter.use('/dashboard', dashboard_1.default);
+apiRouter.use('/users', users_1.default);
 app.use('/api', apiRouter);
 app.use(errorHandler_1.default);
 const startServer = async () => {

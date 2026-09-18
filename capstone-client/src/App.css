@@ -161,6 +161,7 @@
 .claim-note-form input:focus-visible,
 .claim-note-form button:focus-visible,
 .claim-delete-button:focus-visible,
+.users-action-button:focus-visible,
 .claims-back-link a:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
@@ -439,9 +440,43 @@
   border-color: var(--border);
 }
 
+.users-action-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.users-action-button {
+  height: 34px;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 0 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.users-action-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-bg) 70%, var(--surface) 30%);
+}
+
+.users-action-button-delete {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border) 55%);
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface) 86%);
+  color: var(--danger);
+}
+
+.users-action-button-delete:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 22%, var(--surface) 78%);
+}
+
 .claims-new-button:disabled,
 .claims-pagination button:disabled,
-.claims-form button:disabled {
+.claims-form button:disabled,
+.users-action-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -586,14 +621,20 @@
 }
 
 .policy-delete-button {
-  height: 36px;
-  border: 1px solid var(--border);
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border) 55%);
   border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text-h);
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface) 86%);
+  color: var(--danger);
   padding: 0 10px;
   cursor: pointer;
   font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.policy-delete-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 22%, var(--surface) 78%);
 }
 
 .policy-delete-button:disabled {
@@ -668,14 +709,21 @@
 .claim-status-controls button,
 .claim-note-form button,
 .claim-delete-button {
-  height: 40px;
+  height: 34px;
   border: 1px solid var(--accent-border);
   border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--bg);
-  padding: 0 14px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 0 10px;
   cursor: pointer;
   font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.claim-status-controls button:hover:not(:disabled),
+.claim-note-form button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-bg) 70%, var(--surface) 30%);
 }
 
 .claim-description-text {
@@ -721,8 +769,13 @@
 }
 
 .claim-delete-button {
-  background: var(--accent);
-  border-color: var(--accent-border);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border) 55%);
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface) 86%);
+  color: var(--danger);
+}
+
+.claim-delete-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 22%, var(--surface) 78%);
 }
 
 .claim-status-controls button:disabled,
@@ -789,6 +842,7 @@
   .app-navbar-logout,
   .claims-new-button,
   .claims-pagination button,
+  .users-action-button,
   .claims-form button,
   .policies-form button,
   .policy-delete-button,

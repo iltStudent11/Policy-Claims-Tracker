@@ -48,6 +48,16 @@ const Navbar = () => {
         >
           Profile
         </NavLink>
+        {user?.role === 'admin' ? (
+          <NavLink
+            to="/users"
+            className={({ isActive }) =>
+              isActive ? 'app-navbar-link app-navbar-link-active' : 'app-navbar-link'
+            }
+          >
+            Users
+          </NavLink>
+        ) : null}
       </nav>
 
       <div className="app-navbar-user" aria-label="Current user">

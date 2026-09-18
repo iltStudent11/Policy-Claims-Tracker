@@ -60,6 +60,13 @@ API permission highlights:
 - Policies (`POST/PUT/DELETE /api/policies/*`): admin only.
 - Claim delete (`DELETE /api/claims/:id`): admin only.
 - Claim update (`PUT /api/claims/:id`): admin or assigned adjuster.
+- User management (`GET /api/users`, `PUT /api/users/:id`): admin only.
+
+Users management endpoints:
+
+- `GET /api/users`: returns all users except the currently authenticated admin.
+- `PUT /api/users/:id`: updates another user's name, email, and role.
+- Self-edit via `/api/users/:id` is blocked; use `PUT /api/auth/me` for current user profile updates.
 
 ## How to Test User Creation/Profile Changes (API)
 
@@ -75,6 +82,9 @@ Quick API checks:
 5. Confirm non-admin cannot create additional admin users after first admin exists.
 6. Confirm `PUT /api/auth/me` updates valid name/email for authenticated user.
 7. Confirm `PUT /api/auth/me` rejects invalid name/email and duplicate email conflicts.
+8. Confirm admin can list users via `GET /api/users`.
+9. Confirm admin can update another user via `PUT /api/users/:id`.
+10. Confirm non-admin access to `/api/users` returns `403`.
 
 ## Docker
 

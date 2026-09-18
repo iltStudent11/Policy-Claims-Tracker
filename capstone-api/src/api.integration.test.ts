@@ -5,6 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import authRouter from './routes/auth';
 import claimsRouter from './routes/claims';
+import usersRouter from './routes/users';
 import errorHandler from './middleware/errorHandler';
 import PolicyModel from './models/Policy';
 import UserModel from './models/User';
@@ -17,6 +18,7 @@ const createTestApp = () => {
   const apiRouter = Router();
   apiRouter.use('/auth', authRouter);
   apiRouter.use('/claims', claimsRouter);
+  apiRouter.use('/users', usersRouter);
 
   app.use('/api', apiRouter);
   app.use(errorHandler);
@@ -369,5 +371,79 @@ describe('API integration tests', () => {
 
     expect(adminDelete.status).toBe(200);
     expect(adminDelete.body.message).toBe('Claim deleted successfully');
+  });
+
+  it('admin can list, update, and delete other user accounts', async () => {
+    const adminEmail = buildEmail();
+    const adjusterEmail = buildEmail();
+
+    const adminRegistration = await request(app).post('/api/auth/register').send({
+      name: 'Avery Admin',
+      email: adminEmail,
+      password: 'Password123!',
+      role: 'admin',
+    });
+
+    await request(app).post('/api/auth/register').send({
+      name: 'Taylor Adjuster',
+      email: adjusterEmail,
+      password: 'Password123!',
+      role: 'adjuster',
+    });
+
+    const adminToken = adminRegistration.body.token as string;
+    const adjuster = await UserModel.findOne({ email: adjusterEmail });
+
+    expect(adjuster).not.toBeNull();
+
+    const listResponse = await request(app)
+      .get('/api/users')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(listResponse.status).toBe(200);
+    expect(Array.isArray(listResponse.body.users)).toBe(true);
+    expect(listResponse.body.users.length).toBe(1);
+    expect(listResponse.body.users[0].email).toBe(adjusterEmail);
+
+    const updateResponse = await request(app)
+      .put(`/api/users/${adjuster!._id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: 'Taylor Updated',
+        email: adjusterEmail,
+        role: 'admin',
+      });
+
+    expect(updateResponse.status).toBe(200);
+    expect(updateResponse.body.user.name).toBe('Taylor Updated');
+    expect(updateResponse.body.user.role).toBe('admin');
+
+    const deleteResponse = await request(app)
+      .delete(`/api/users/${adjuster!._id}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(deleteResponse.status).toBe(200);
+    expect(deleteResponse.body.message).toBe('User deleted successfully');
+
+    const deletedUser = await UserModel.findById(adjuster!._id);
+    expect(deletedUser).toBeNull();
+  });
+
+  it('non-admin cannot list user accounts', async () => {
+    const adjusterRegistration = await request(app).post('/api/auth/register').send({
+      name: 'Jordan Adjuster',
+      email: buildEmail(),
+      password: 'Password123!',
+      role: 'adjuster',
+    });
+
+    const adjusterToken = adjusterRegistration.body.token as string;
+
+    const response = await request(app)
+      .get('/api/users')
+      .set('Authorization', `Bearer ${adjusterToken}`);
+
+    expect(response.status).toBe(403);
+    expect(response.body.message).toBe('Forbidden');
   });
 });

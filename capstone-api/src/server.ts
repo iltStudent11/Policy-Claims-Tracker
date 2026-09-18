@@ -7,6 +7,7 @@ import authRouter from './routes/auth';
 import claimsRouter from './routes/claims';
 import dashboardRouter from './routes/dashboard';
 import policiesRouter from './routes/policies';
+import usersRouter from './routes/users';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ apiRouter.use('/auth', authRouter);
 apiRouter.use('/policies', policiesRouter);
 apiRouter.use('/claims', claimsRouter);
 apiRouter.use('/dashboard', dashboardRouter);
+apiRouter.use('/users', usersRouter);
 
 app.use('/api', apiRouter);
 

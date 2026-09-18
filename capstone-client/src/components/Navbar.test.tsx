@@ -41,5 +41,6 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: 'Claims' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Policies' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Profile' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Users' })).toBeInTheDocument()
   })
 })

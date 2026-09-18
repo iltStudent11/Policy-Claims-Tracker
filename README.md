@@ -222,6 +222,12 @@ Role-based permissions enforced by API:
    - can update only claims assigned to them
    - cannot delete claims
 
+Admin user-management:
+
+- Admins can view all other user accounts from the Users tab (`/users`).
+- Admins can update other users' name, email, and role.
+- Non-admins cannot access the users-management API endpoints.
+
 ## How to Test User Creation/Profile Changes
 
 Use this quick checklist in local development:
@@ -237,6 +243,10 @@ Use this quick checklist in local development:
 9. Verify role permissions:
    - adjuster cannot create/delete policies or delete claims
    - admin can manage policies and delete claims
+10. Login as admin and open `/users`:
+   - confirm you can see other users
+   - confirm you can update another user's name/email/role
+   - confirm non-admin users cannot access this page
 
 ## API Endpoint Reference
 
@@ -258,6 +268,8 @@ Use this quick checklist in local development:
 | POST | `/api/policies` | Yes | Create a policy |
 | GET | `/api/policies/:id` | Yes | Get policy details |
 | PUT | `/api/policies/:id` | Yes | Update policy |
+| GET | `/api/users` | Yes (admin) | List all users except current authenticated admin |
+| PUT | `/api/users/:id` | Yes (admin) | Update another user's name/email/role |
 | DELETE | `/api/policies/:id` | Yes | Delete policy |
 
 ## Tech Stack Summary
