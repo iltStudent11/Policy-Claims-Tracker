@@ -35,6 +35,18 @@ Default local runtime:
 - `npm run seed` - Seed database (destructive; confirmation required)
 - `npm run verify:auth-password` - Verify `/auth/login` and `/auth/me` responses never expose a `password` field
 
+Repository-level dev environment scripts (run from repo root):
+
+- `npm run devenv:start`
+- `npm run devenv:status`
+- `npm run devenv:restart`
+- `npm run devenv:stop`
+
+Notes:
+
+- `devenv:stop` stops PID-tracked processes first, then safely stops unmanaged listeners on `:5000`/`:5173` only when they belong to this workspace.
+- `devenv:status` can report frontend/API listeners as `managed` or `unmanaged process detected`.
+
 ## Auth and User Rules
 
 Registration and profile update enforce:

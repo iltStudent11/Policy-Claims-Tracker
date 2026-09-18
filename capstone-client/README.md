@@ -33,6 +33,18 @@ Container runtime note: Nginx in this client image proxies `/api` to the `api` s
 - `npm test` - Run Vitest component tests
 - `npm run test:watch` - Run Vitest in watch mode
 
+Repository-level dev environment scripts (run from repo root):
+
+- `npm run devenv:start`
+- `npm run devenv:status`
+- `npm run devenv:restart`
+- `npm run devenv:stop`
+
+Notes:
+
+- `devenv:stop` stops PID-tracked processes first, then safely stops unmanaged listeners on `:5000`/`:5173` only when they belong to this workspace.
+- `devenv:status` can report frontend/API listeners as `managed` or `unmanaged process detected`.
+
 ## Testing
 
 Component tests use Vitest + React Testing Library.

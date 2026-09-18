@@ -150,6 +150,12 @@ npm run devenv:restart
 npm run devenv:stop
 ```
 
+Notes:
+
+- `devenv:stop` first stops PID-tracked processes started by `devenv:start`.
+- It then checks listeners on `:5000` and `:5173` and stops only workspace-owned processes (safe fallback for manually started dev servers).
+- `devenv:status` reports frontend/API listeners as `managed` or `unmanaged process detected` when ports are in use.
+
 Prod-only (`docker-compose.prod.yml`):
 
 ```bash
