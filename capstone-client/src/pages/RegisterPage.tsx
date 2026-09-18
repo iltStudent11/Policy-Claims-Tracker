@@ -52,7 +52,8 @@ const RegisterPage = () => {
   return (
     <main className="auth-page">
       <section className="auth-card" aria-labelledby="register-title">
-        <h1 id="register-title">Register</h1>
+        <h1 id="register-title">Policy Claims Tracker</h1>
+        <h2>Register</h2>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label htmlFor="name">

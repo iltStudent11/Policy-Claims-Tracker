@@ -34,6 +34,7 @@ describe('LoginPage', () => {
       </MemoryRouter>,
     )
 
+    expect(screen.getByRole('heading', { name: 'Policy Claims Tracker' })).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
   })

@@ -34,7 +34,8 @@ const LoginPage = () => {
   return (
     <main className="auth-page">
       <section className="auth-card" aria-labelledby="login-title">
-        <h1 id="login-title">Login</h1>
+        <h1 id="login-title">Policy Claims Tracker</h1>
+        <h2>Login</h2>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label htmlFor="email">

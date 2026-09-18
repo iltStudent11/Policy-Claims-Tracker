@@ -34,6 +34,7 @@ describe('RegisterPage role selector', () => {
       </MemoryRouter>,
     )
 
+    expect(screen.getByRole('heading', { name: 'Policy Claims Tracker' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Adjuster' })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: 'Admin' })).not.toBeInTheDocument()
   })
